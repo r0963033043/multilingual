@@ -1,0 +1,2455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Writing Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<style>
+:root{
+  --paper:#FFFFFF; --ink:#1C1C21; --ink-2:#55555E; --rule:#E4E3DD; --rule-2:#C7C6BE;
+  --red:#C8283C; --blue:#2A4D9B; --blue-soft:#E7ECF8; --hl:#FFE873; --hl-ink:#1C1C21; --panel:#F5F4EF;
+  --bar-h:56px; --serif:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans:-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "Helvetica Neue", Arial, sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#15161A; --ink:#ECEBE6; --ink-2:#B3B2AB; --rule:#2B2C33; --rule-2:#3F4049;
+    --red:#F07386; --blue:#93ABE8; --blue-soft:#232B3F; --hl:#8A7A1E; --hl-ink:#FFF6C4; --panel:#1C1D23;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#15161A; --ink:#ECEBE6; --ink-2:#B3B2AB; --rule:#2B2C33; --rule-2:#3F4049;
+  --red:#F07386; --blue:#93ABE8; --blue-soft:#232B3F; --hl:#8A7A1E; --hl-ink:#FFF6C4; --panel:#1C1D23;
+}
+html{scroll-padding-top:calc(var(--bar-h) + 12px + env(safe-area-inset-top,0px));}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.65;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--blue)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:2px}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:1px solid var(--rule);
+  display:grid;grid-template-columns:auto auto 1fr auto;grid-template-areas:"back menu title lang" "search search search search";align-items:center;gap:8px;padding:8px 12px}
+.bar .menu{grid-area:menu;width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--rule-2);border-radius:6px}
+.bar .back{grid-area:back;width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--rule-2);border-radius:6px;text-decoration:none;color:inherit;font-size:1.1rem}
+.bar .menu svg{width:20px;height:20px}
+.bar .title{grid-area:title;font-family:var(--serif);font-weight:600;font-size:1.1rem;letter-spacing:.01em;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lang{grid-area:lang;display:inline-flex;border:1px solid var(--rule-2);border-radius:6px;overflow:hidden}
+.lang button{padding:6px 12px;font-size:.9rem;color:var(--ink-2)}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.search{grid-area:search;position:relative}
+.search input{width:100%;height:40px;padding:0 36px 0 12px;border:1px solid var(--rule-2);border-radius:6px;background:var(--paper);color:var(--ink);font:inherit}
+.search input::placeholder{color:var(--ink-2)}
+.search .clear{position:absolute;right:4px;top:4px;width:32px;height:32px;border-radius:4px;color:var(--ink-2);display:none;place-items:center}
+.search.has .clear{display:grid}
+@media (min-width:900px){
+  .bar{grid-template-columns:auto auto 1fr minmax(240px,420px) auto;grid-template-areas:"back menu title search lang";padding:8px 20px}
+}
+
+/* layout */
+.layout{display:grid;grid-template-columns:1fr;max-width:1200px;margin:0 auto}
+@media (min-width:900px){.layout{grid-template-columns:272px minmax(0,1fr)}
+  body.toc-hidden .layout{grid-template-columns:minmax(0,1fr)}
+  body.toc-hidden .toc{display:none}
+  body.toc-hidden main{margin:0 auto}
+  .toc-top .close{display:grid}}
+.toc{background:var(--panel);border-right:1px solid var(--rule);padding:16px 14px 40px;font-size:.92rem}
+@media (min-width:900px){
+  .toc{position:sticky;top:calc(var(--bar-h) + env(safe-area-inset-top,0px));height:calc(100vh - var(--bar-h) - env(safe-area-inset-top,0px));overflow:auto;align-self:start}
+}
+@media (max-width:899px){
+  .toc{position:fixed;inset:0 auto 0 0;width:min(84vw,340px);z-index:30;transform:translateX(-105%);transition:transform .22s ease;overflow:auto;
+    padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(40px + env(safe-area-inset-bottom,0px));box-shadow:0 0 0 1px var(--rule)}
+  .toc.open{transform:none}
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:25;display:none}
+  .scrim.show{display:block}
+}
+.toc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.toc-top h2{font-family:var(--serif);font-size:1rem;font-weight:600;margin:0}
+.toc-top .close{display:none;width:32px;height:32px;place-items:center;border:1px solid var(--rule-2);border-radius:6px}
+@media (max-width:899px){.toc-top .close{display:grid}}
+.toc-tools{display:flex;gap:6px;margin-bottom:12px}
+.toc-tools button{font-size:.8rem;padding:4px 8px;border:1px solid var(--rule-2);border-radius:4px;color:var(--ink-2)}
+.toc ul{list-style:none;margin:0;padding:0}
+.toc-part{margin:6px 0 10px}
+.toc-row{display:flex;align-items:center;gap:2px}
+.toc-row > a{flex:1;display:block;font-weight:600;color:var(--ink);text-decoration:none;padding:4px 6px;border-radius:4px}
+.toc-tog{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;border-radius:4px;color:var(--ink-2)}
+.toc-tog:hover{background:var(--blue-soft);color:var(--ink)}
+.toc-tog span{width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-top:-3px;transition:transform .18s ease}
+.toc-part.shut .toc-tog span{transform:rotate(-45deg);margin-top:0;margin-left:-3px}
+.toc-part.shut > ul{display:none}
+.toc-group{margin:4px 0}
+.toc-drafts{list-style:none;margin:0 0 2px 10px;padding-left:8px;border-left:1px dashed var(--rule-2)}
+.toc-drafts a{font-size:.84rem;padding:2px 6px !important}
+.toc-group > .toc-row > .toc-glabel{flex:1;font-size:.8rem;font-weight:650;letter-spacing:.04em;text-transform:uppercase;color:var(--blue);padding:4px 6px}
+.toc-group > ul{border-left:0;margin:0;padding-left:8px}
+.toc-group.shut > ul{display:none}
+.toc-group.shut > .toc-row .toc-tog span{transform:rotate(-45deg);margin-top:0;margin-left:-3px}
+.group-h{font-family:var(--serif);font-weight:600;font-size:1.15rem;color:var(--blue);margin:2.2rem 0 .3rem;padding-bottom:.3rem;border-bottom:1px solid var(--blue)}
+.group-h[hidden]{display:none}
+.sec-body h4{font-family:var(--sans);font-size:.88rem;font-weight:650;color:var(--ink-2);margin:1.6em 0 .3em;padding-top:.6em;border-top:1px dashed var(--rule-2)}
+.toc-part ul{border-left:2px solid var(--rule-2);margin:2px 0 0 9px;padding-left:8px}
+.toc-part ul a{display:block;color:var(--ink-2);text-decoration:none;padding:3px 6px;border-radius:4px;line-height:1.35;margin:1px 0}
+.toc a:hover{background:var(--blue-soft);color:var(--ink)}
+.toc a.active{color:var(--blue);font-weight:600}
+
+/* content */
+main{padding:20px 18px 96px;max-width:80ch;min-width:0}
+@media (min-width:900px){main{padding:28px 40px 120px}}
+.doc-title{font-family:var(--serif);font-weight:600;font-size:1.9rem;line-height:1.2;margin:.2em 0 .5em;letter-spacing:-.01em}
+.intro{color:var(--ink-2);font-size:.95rem}
+.intro p{margin:.5em 0}
+.results{font-size:.9rem;color:var(--ink-2);margin:4px 0 14px;min-height:1.3em}
+.part{margin-top:2.6rem}
+.part > h2{font-family:var(--serif);font-weight:600;font-size:1.5rem;line-height:1.25;margin:0 0 .6em;padding-top:.9rem;border-top:2px solid var(--ink)}
+.part-body{margin-bottom:1rem}
+.sec{margin:0 0 .4rem;border-bottom:1px solid var(--rule)}
+.sec-h{margin:0;font-size:1.12rem;font-family:var(--serif);font-weight:600;line-height:1.3}
+.tog{display:flex;align-items:flex-start;gap:8px;width:100%;text-align:left;padding:12px 4px 12px 0}
+.tog-mark{flex:0 0 auto;width:10px;height:10px;margin-top:.5em;border-right:2px solid var(--ink-2);border-bottom:2px solid var(--ink-2);transform:rotate(45deg);transition:transform .18s ease}
+.sec.collapsed .tog-mark{transform:rotate(-45deg)}
+.sec.collapsed .sec-body{display:none}
+.sec-body{padding:0 0 14px 18px}
+.sec-body > :first-child{margin-top:0}
+h4{font-size:1rem;margin:1.2em 0 .4em}
+p{margin:.6em 0}
+strong{font-weight:650}
+ul,ol{padding-left:1.35em;margin:.5em 0}
+li{margin:.22em 0;position:relative}
+li.has-copy{padding-right:2.1em}
+li > ul, li > ol{margin:.2em 0 .3em}
+hr{display:none}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.92em}
+mark{background:var(--hl);color:var(--hl-ink);padding:0 .12em;border-radius:2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+
+/* tables */
+.tbl{overflow-x:auto;margin:.8em 0;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.94rem;min-width:420px}
+th,td{text-align:left;vertical-align:top;padding:8px 10px;border-bottom:1px solid var(--rule)}
+th{font-weight:650;border-bottom:2px solid var(--rule-2);white-space:nowrap}
+.tbl.errors td:first-child{color:var(--red);text-decoration:underline wavy var(--red);text-decoration-thickness:1px;text-underline-offset:3px}
+.tbl.errors td:nth-child(2){color:var(--blue);font-weight:600}
+
+/* essays */
+blockquote{margin:.9em 0 .3em;padding:.2em 0 .2em 18px;border-left:3px solid var(--blue);font-family:var(--serif);font-size:1.02rem;line-height:1.7}
+blockquote p{margin:.75em 0}
+.bq-tools{margin:0 0 1em;text-align:right}
+.bq-tools button,.chk-tools button{font-size:.82rem;padding:5px 10px;border:1px solid var(--rule-2);border-radius:4px;color:var(--ink-2)}
+.bq-tools button:hover,.chk-tools button:hover{color:var(--ink);border-color:var(--ink-2)}
+
+/* copy buttons */
+.copy{position:absolute;right:0;top:.15em;width:1.7em;height:1.7em;border-radius:4px;color:var(--ink-2);opacity:.5;display:grid;place-items:center}
+.copy svg{width:15px;height:15px}
+.copy:hover,.copy:focus-visible{opacity:1;background:var(--blue-soft);color:var(--ink)}
+@media (hover:none){.copy{opacity:.7}}
+
+/* checklist */
+li.check{list-style:none;margin:.35em 0 .35em -1.35em;padding:0}
+.chk{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;cursor:pointer;padding:6px 8px;border-radius:6px}
+.chk:hover{background:var(--panel)}
+.chkbox{width:20px;height:20px;margin:.2em 0 0;accent-color:var(--blue)}
+.chk .n{color:var(--ink-2);font-variant-numeric:tabular-nums;margin-right:.35em}
+.chk.done > span{color:var(--ink-2)}
+.chk-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:.6em 0 1em;font-size:.9rem;color:var(--ink-2)}
+.chk-progress b{color:var(--blue);font-weight:650}
+
+/* pattern tabs (2.4) */
+.ptabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px;padding:0;list-style:none}
+.ptabs button{padding:6px 12px;border:1px solid var(--rule-2);border-radius:999px;font-size:.9rem;color:var(--ink-2)}
+.ptabs button:hover{border-color:var(--ink-2);color:var(--ink)}
+.ptabs button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--paper)}
+.pgroup[hidden],.psub[hidden],.phead[hidden]{display:none}
+.ttabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.ttabs[hidden]{display:none}
+.ttabs button{padding:6px 12px;border:1px solid var(--rule-2);border-radius:999px;font-size:.9rem;color:var(--ink-2)}
+.ttabs button:hover{border-color:var(--ink-2);color:var(--ink)}
+.ttabs button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--paper)}
+li[hidden]{display:none}
+.psubs{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 14px;padding-left:10px;border-left:2px solid var(--blue)}
+.psubs[hidden]{display:none}
+.psubs button{padding:4px 10px;border:1px solid var(--rule-2);border-radius:999px;font-size:.84rem;color:var(--ink-2)}
+.psubs button:hover{border-color:var(--ink-2);color:var(--ink)}
+.psubs button[aria-pressed="true"]{background:var(--blue-soft);border-color:var(--blue);color:var(--ink);font-weight:600}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);background:var(--ink);color:var(--paper);padding:8px 14px;border-radius:6px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;z-index:40}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+.empty{color:var(--ink-2);padding:20px 0}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;scroll-behavior:auto !important}}
+@media print{.bar,.toc,.scrim,.copy,.bq-tools,.chk-tools,.toc-tools{display:none !important}.sec.collapsed .sec-body{display:block}main{max-width:none;padding:0}}
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="back" href="projects.html" title="Back to home" aria-label="Back to home">←</a>
+  <button class="menu" id="menu-btn" type="button" aria-label="目錄" aria-controls="toc" aria-expanded="false">
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+  </button>
+  <h1 class="title" id="bar-title">IELTS Writing Notes</h1>
+  <div class="search" id="search-wrap">
+    <input id="search" type="search" autocomplete="off" spellcheck="false" placeholder="搜尋" aria-label="搜尋">
+    <button class="clear" id="search-clear" type="button" aria-label="清除">
+      <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg>
+    </button>
+  </div>
+  <div class="lang" role="group" aria-label="語言">
+    <button type="button" data-lang="en" aria-pressed="true">EN</button>
+    <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+  </div>
+</header>
+<div class="scrim" id="scrim"></div>
+<div class="layout">
+  <nav class="toc" id="toc" aria-label="目錄">
+    <div class="toc-top"><h2 id="toc-title">目錄</h2><button class="close" id="toc-close" type="button" aria-label="關閉"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg></button></div>
+    <div class="toc-tools"><button type="button" id="expand-all">全部展開</button><button type="button" id="collapse-all">全部收合</button></div>
+    <ul id="toc-list"></ul>
+  </nav>
+  <main id="content"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="text/plain" id="md-zh"># IELTS Writing 技巧與句型整理
+
+整理自：Task 2〈四天工作週〉、Task 1〈五國失業率折線圖〉兩篇練習踩過的坑、課本 Ch.19 優缺點題的解析、筆記本上的段落配置與模板。
+
+**記號說明**：「A / B」= 二選一的替換寫法，不是句子的一部分（例：the benefits outweigh / are of more importance than the drawbacks = 兩句擇一）；「[ ]」= 依題目代入；「…」= 省略，自己補內容。
+
+---
+
+## 0. 交卷前檢查清單（兩題共用）
+
+照「最常漏」的順序排：
+
+1. **主詞是數字，不是國家**（Task 1）：the rate in Spain rose，不是 Spain rose。
+2. **單複數**：all / fewer / many / 泛指一群 → 複數（interests, mistakes, professions, workers）。
+3. **詞性**：experience + 名詞；feel + 形容詞；less / more + 形容詞（要跟 happier 平行）。
+4. **搭配**：improve + quality / health / balance；boost / increase + happiness / morale。
+5. **冠詞**：the UK、the United Kingdom。
+6. **時態**：Task 1 全篇過去式；Task 2 以一般現在式為主。
+7. **拼字**：UK / US 二選一，全篇一致。
+8. **重複**：同一個字或同一結構在相鄰句子連用（making them… / making it…）。
+9. **字數**：Task 1 ≥ 150（目標 170–190）；Task 2 ≥ 250（目標 250–280）。
+10. **抄題目**：借題目的名詞可以，整句照抄會扣分。
+11. **不用縮寫**：don't → do not、it's → it is、can't → cannot（老師標的）。
+
+**找替換詞的四關**：詞性對、單複數對、跟前後字搭得自然、放進段落邏輯合理（而且不重複）。
+
+---
+
+## 1. Task 1（20 分鐘，≥ 150 字）
+
+<!-- toc-group: 折線圖與通用技巧 -->
+
+### 1.1 結構
+
+| 段落 | 內容 | 句數 | 字數 |
+|---|---|---|---|
+| Intro | 改寫題目一句話（換動詞、換語態） | 1 | 15–20 |
+| Overview | 主趨勢 + 最醒目的特徵；不放數字或只放關鍵數字 | 2 | 25–40 |
+| Body 1 | 起點年份的排名與數字 → 到中段的變化 | 3–4 | 45–60 |
+| Body 2 | 後段變化到終點；比較與排名 | 4–5 | 55–75 |
+
+合計 150–195，目標 170–190。（定稿實際：17 / 29 / 50 / 78）
+
+- 時間分配：2 分鐘讀圖、數清楚每條線的方向 → 15 分鐘寫 → 3 分鐘照清單檢查。
+- 只有一句的段落要併進相鄰段。
+
+### 1.2 技巧
+
+1. 寫 overview 之前先數清楚每條線的方向（例：五國四升一降）。漏掉一條線就是 Task Achievement 扣分。
+2. 反轉、交叉、最高最低易位是全圖亮點，放進 overview（例：Germany 從最高變最低）。
+3. 主詞用數字：the rate in X / unemployment in X / X's unemployment rate，或改成 X saw a rise to…。
+4. **幅度 vs 速度**：一年之內的變化只談幅度（slightly）；跨多年的變化才談速度或方式（steadily, gradually）。幾個國家掉的幅度不同時，用 converge 直接講結果，不必選副詞。
+5. respectively 緊跟在配對的數字後面：…to 20% and 14% respectively。
+6. 排名要精確：14% 是第二高 → the two highest，不是 the highest。
+7. by + 過去年份可以搭過去完成式（By 2007, the rates had converged…），是文法加分項。
+8. 用 figures / rates，不用 numbers；用 the other four / the remaining four，不用 the rest four。
+9. Overview 和 body 講同一件事是設計好的（資訊重複可以），說法重複才要改。
+10. Whereas / although / while 是從屬連接詞，不能單獨開一句；要對比另起一句用 In contrast, / By contrast,。
+
+### 1.3 時間介系詞
+
+| 用法 | 意思 | 例句 |
+|---|---|---|
+| in 2005 | 那一年當下（快照） | In 2005, Germany recorded the highest rate at 12%. |
+| by 2010 | 到那年為止（變化的終點） | …climbed rapidly to 13% by 2010. |
+| from 2005 to 2010 / between 2005 and 2010 | 整段起訖 | Unemployment in the UK rose from 5% to 8% between 2005 and 2010. |
+| over the period / over the five years | 整段期間，不帶年份 | Unemployment in Germany declined over the period. |
+| during 2008 | 那一年之中 | The rate dipped slightly during 2008. |
+| by the end of the period | 期末 | …leaving it the lowest by the end of the period. |
+
+判斷法：講「那一年是多少」→ in；講「變化累積到那一年為止」→ by。
+fell to 7.5% **in** 2008 = 下跌就發生在那一年；fell to 7.5% **by** 2008 = 下跌從更早開始、那一年結束。
+
+### 1.4 趨勢動詞與名詞
+
+| 方向 | 動詞（過去式） | 名詞 |
+|---|---|---|
+| 上升 | rose, increased, climbed, grew, surged（急升）, soared（飆升） | a rise / an increase / growth / a surge in… |
+| 下降 | fell, dropped, declined, decreased, dipped（小跌）, plunged / plummeted（急跌） | a fall / a drop / a decline / a decrease in… |
+| 平穩 | remained stable / steady, stayed constant, levelled off, plateaued | a plateau |
+| 波動 | fluctuated | fluctuations |
+| 高低點 | peaked at, reached a high / low of, bottomed out at | a peak of… / a low of… |
+| 匯合 | converged at (around 8%) | — |
+| 反轉、超越 | reversed, overtook | a reversal |
+
+名詞句型：There was a dramatic rise in Spain's unemployment rate, from 9% to 20%. / Spain saw a sharp increase of 11 percentage points.
+
+### 1.5 副詞
+
+- **幅度**：slightly / marginally（小）、moderately（中）、considerably / significantly / substantially（大）、dramatically / sharply（很大，且隱含快）
+- **速度、方式**：gradually / steadily / slowly、rapidly / quickly、consistently
+- 常見搭配：rose dramatically、fell slightly、declined steadily、increased gradually、remained broadly stable
+
+### 1.6 比較與排名句型
+
+- X recorded the highest rate at 12%, followed by Y at 10% and Z at 9%.
+- X and Y had considerably lower figures, at 5% and 4% respectively.
+- …, making them the two highest figures by 2010.
+- …, leaving it the lowest of the five countries by 2010.
+- Unemployment declined in X, which took it from the highest to the lowest.
+- X was the only country whose rate fell.
+- The rates in X, Y and Z converged at around 8%.
+- X's rate was twice as high as Y's. / X overtook Y in 2008.
+- The following three years saw further changes. / 2008 marked a turning point for four of the five countries.
+- The most striking feature is that…
+
+### 1.7 Intro 改寫
+
+- The line graph illustrates / shows / compares how unemployment rates changed in five European countries between 2005 and 2010.
+- Changes in unemployment rates in five European countries between 2005 and 2010 are illustrated in the line graph.（被動）
+- 換字：shows → illustrates / compares / gives information about；percentage → proportion；from … to … → between … and … / over a five-year period
+
+### 1.8 完成稿範例（自己修到定稿的版本，約 174 字）
+
+> Changes in unemployment rates in five European countries between 2005 and 2010 are illustrated in the line graph.
+>
+> Overall, unemployment declined in Germany, which took it from the highest to the lowest. In contrast, the rates of the other four countries increased, although there were some fluctuations.
+>
+> In 2005, Germany recorded the highest rate at 12%, followed by Greece at 10% and Spain at 9%. The UK and Ireland had considerably lower figures, at 5% and 4% respectively. By 2007, the three highest rates dropped to a similar level of around 8%, and the rest remained stable.
+>
+> The following three years saw further changes. The rates in Spain and Ireland rose dramatically to 20% and 14% respectively, making them the two highest figures by 2010, while the rate in Greece fell slightly to 7.5% in 2008 and climbed rapidly to 13% by 2010. Unemployment in the UK increased consistently from 5% to 8%.
+>
+> By contrast, the rate in Germany declined steadily from 8% to 7%, leaving it the lowest of the five countries by 2010.
+
+從 7 往 7.5 走：一兩個高分字（converge, plateau, surge, peak at）、一次用對的過去完成式、把 2008 當四國共同的轉折點來寫。
+
+<!-- toc-group: 長條圖（Bar chart） -->
+
+### 1.9 靜態圖（bar chart，沒有時間軸）的寫法
+
+沒有時間軸就沒有「趨勢」，全篇是「比較」：
+
+- 動詞換成 had / stood at / recorded / accounted for，不用 rose / fell。
+- 時態：圖表本身用現在式（The bar chart shows…），但 2005 年的數據用過去式（Poland had…）。
+- Overview 要寫兩件事：① 極端值（哪國最高、哪國最低）；② 跨類別的共同模式（例：每個國家的青年失業率都遠高於整體，大約兩倍）。漏第二件是 Task Achievement 最常見的扣分。
+- Body 1 寫兩個極端（最高 vs 最低，帶實際數字）；Body 2 寫中間組，先一個類別再另一個類別，每句只做一組比較。
+- 分數比較（one fifth, two thirds）是加分，但至少要配一次實際數字；只寫分數不寫數字，考官會認為你沒有報數據。
+- 差距用 percentage points，不用 percent：3.5 percentage points lower。（3.5 percent lower 是相對量「低 3.5%」，意思不同。）
+- rate 是高低不是多少：as high as，不是 as much as；as much rate as 不成立。
+
+**比較句型**
+
+- X's rate was twice / three times as high as Y's. / …was double the figure for Y.
+- Y's figure was only half / a third / two thirds of X's. / …roughly a fifth of the Polish rate.
+- X was 3.5 percentage points lower than Y. / X exceeded Y by 5 percentage points.
+- X had the second-highest rate, at 24%, followed by Y at 17.5%.
+- In every country, the rate for young adults was considerably higher than the overall rate.
+- The gap between the two groups was widest in X and narrowest in Y.
+- X and Y recorded almost identical figures, at around 7.5%.
+- 連接與修飾：compared with / whereas / while / by contrast / respectively / just / only / approximately / the population as a whole
+
+### 1.10 練習：Bar chart（2005 年五國青年 vs 整體失業率）——第一稿，待修
+
+> The bar chart shows the percentage of unemployment rates among young adults and total population in five European countries in 2005.
+>
+> Overall, Poland has the highest unemployment levels in all ages. In contrast, Denmark has the lowest rates, and much lower than other countries.
+>
+> In more specific terms, Poland has 35 percent of young adults and 15 percent for total that don't have jobs, compared with Denmark which has approximately one fifth as much as Poland among young adults and one sixth as much as in total.
+>
+> Turning to the unemployment rates in the other (three) countries, as for the unemployment rates among young people, Italy has two thirds as much rate as Poland, while Hungary has half as much as Poland, Germany is 3.5 percent lower than Hungary, which has twice as much as Denmark. However, as for the unemployment rates of total, Germany has higher rates, which has two thirds as much rate as Poland, Italy and Hungary both have half as much rate as Poland.
+
+**待修清單**
+
+1. Overview 缺第二個特徵：五國的青年失業率都遠高於整體。
+2. 時態：2005 年的數據全部改過去式（has → had）。
+3. in all ages → 只有兩個類別，改成 for both groups。
+4. and much lower than other countries → 比較不完整，補主詞和 the。
+5. the percentage of unemployment rates → rates 已經是百分比，二選一。
+6. don't have jobs → 口語，改成 were unemployed / out of work；for total → of the total population。
+7. as much rate as ×3 → 用 as high as，或 of X's figure；三處換成不同結構。
+8. 3.5 percent lower → 3.5 percentage points lower。
+9. which has twice as much as Denmark → which 指涉不清（Hungary 還是 Germany？）。
+10. 第四段是 comma splice 串成的長句，拆成 3–4 句；Turning to… 和 as for… 疊在一起，留一個；括號拿掉。
+11. Italy、Hungary、Germany 沒有任何實際數字，至少各補一個。
+12. Germany has higher rates → 高於誰？寫成 the second-highest rate。
+
+估分：這稿約 6.0。修好 1、2、7、10、11 就到 6.5；再把比較句型換成 1.9 的寫法可以碰到 7。
+
+<!-- toc-group: 流程圖（Process diagram） -->
+
+### 1.11 流程圖（Process diagram）
+
+**兩種流程**
+- 製造／生產流程：東西怎麼做出來（咖啡、紙、磚塊、回收塑膠、玻璃）
+- 自然流程：自然的循環或發展（水循環、蝴蝶生命週期、植物生長、岩石形成）
+
+**結構（4 段）**
+
+| 段落 | 內容 | 句數 | 字數 |
+|---|---|---|---|
+| Intro | 改寫題目，說明圖在講什麼流程 | 1 | 15–20 |
+| Overview | 幾個主要階段、從哪裡開始、在哪裡結束、直線還是循環；不放細節和數字 | 1–2 | 25–40 |
+| Body 1 | 前半段流程 | 3–5 | 55–70 |
+| Body 2 | 後半段流程 | 3–5 | 55–70 |
+
+**寫 Overview 前先問自己四個問題**
+1. 從哪裡開始？
+2. 在哪裡結束？
+3. 有幾個主要階段？（把細的步驟合併成 2–4 大段）
+4. 是直線（linear）還是循環（cyclical）？
+
+**Overview 模板**
+- Overall, it is a linear / cyclical process which consists of [three] main stages, involving [twelve] steps in total, beginning with the [noun] of … and ending with the [noun] of … .
+
+<!-- -->
+
+- Overall, it is a linear / cyclical process **which consists of** …
+- Overall, it is a linear / cyclical process **consisting of** …
+
+<!-- -->
+
+- Overall, the process consists of **[three] main stages, involving [twelve] steps in total**, beginning with … .
+- Overall, the process consists of **[number] main stages**, beginning with … .
+- Overall, the process consists of **[twelve] steps, which can be divided / grouped into [three] main stages**, beginning with … .
+- It is a linear / cyclical process.
+
+注意：the … of 中間放名詞或 V-ing（the sorting of beans、the packaging of the finished product）；the 和 of 要一起出現；有現成名詞時優先用名詞（production、storage、delivery、sale，不用 the producing of）；steps 是圖上的小步驟，main stages 是合併後的大段；and ending 前面不加逗號。
+
+**排序用語**
+
+開始：
+  * Initially,
+  * First of all,
+  * To begin with,
+  * The first stage is to…
+  * At the beginning of the process,
+
+中間：
+  * After that,
+  * Once this stage / step is complete,
+  * The next stage / step involves…
+  * Following this,
+  * Subsequently,
+  * Afterwards,
+  * At this point,
+  * Next,
+
+結束：
+  * Finally,
+  * Lastly,
+  * The final stage is to…
+  * The last stage involves…
+  * Eventually,
+
+**排序小技巧**
+
+- 不要一直用 Then：換著用「中間」那一組，或把 then 放進句子裡（The beans are then roasted.）。
+- 兩個緊連的小步驟可以合成一句：The beans are sorted by hand and then cleaned.
+
+**流程動詞**
+- 開始：begin / start
+- 加工：process / treat / transform / convert / crush / grind / heat / cool / dry / wash / filter / separate / mix / combine
+- 結束：pack / package / distribute / transport / deliver；名詞 the finished product
+
+**文法重點**
+- **被動語態**：製造流程的主角是「東西」，不是「做的人」。公式：主詞 + am / is / are + 過去分詞。
+  * Workers sort the beans. → The beans are sorted by hand.
+  * Machines grind the beans. → The beans are ground.
+- **時態**：流程是一般現在式（跟折線圖用過去式不同）。
+- **主詞與動詞一致**：The beans **are** roasted.／The coffee **is** packed.（coffee 不可數，用 is）
+- 不用 by workers / by machines，除非「用什麼做」是重點（例如 by hand）。
+
+### 1.12 練習：咖啡乾式製程（12 個步驟）
+
+**規劃**（直線流程，12 個步驟 → 3 個主要階段）
+- 階段 1 在農場（1–5）：人工挑豆 → 篩子清洗 → 日曬四週 → 耙動翻面 → 存入穀倉
+- 階段 2 在加工廠（6–9）：運到 mill → 去殼 → 分級 → 裝袋
+- 階段 3 烘焙與零售（10–12）：賣出 → 烘焙 → 包裝販售
+- Body 1 寫農場，Body 2 寫加工廠到零售
+
+**圖上的字**
+
+| 單字 | 意思 |
+|---|---|
+| sieve (n./v.) | 篩子；用篩子把小東西和大東西分開 |
+| rake (v.) | 用耙子翻動、耙平 |
+| silo (n.) | 儲存穀物的高圓塔 |
+| mill (n.) | 加工廠（原意是把穀物磨成粉的建築） |
+| hull (v.) / hulling | 去掉種子外層的殼 |
+| grade (v.) / grading | 依品質分級（好豆、壞豆） |
+
+**句型示範**
+- Intro：
+  * The diagram illustrates the process involved in producing dry-roasted coffee.
+  * The process involved in producing dry-roasted coffee is illustrated in the given diagram.
+- Overview：
+  * Overall, the process consists of twelve steps, which can be divided into three main stages: preparation on the farm, processing at a mill, and roasting before the coffee is packed and sold.
+  * It is a linear process, beginning with the sorting of beans by hand and ending with the sale of the packaged product.
+
+
+#### 第 1 稿（2026-09-29，約 200 字）
+
+> The process of producing dry-roasted coffee is illustrated in the diagram.
+>
+> Overall, it is a linear process which consists of three main stages involving twelve steps in total, beginning with the harvesting of coffee beans, and ending with the selling of packages.
+>
+> First of all, the coffee beans are filtered and cleaned by farmers for roughly choosing the good ones. After that, the beans are dried in sun for four weeks. During the period, they are raked and turned to make sure they are completely dried. Once this step is completed, the dried beans are stored in silo temporary before switching to next place.
+>
+> Following this, the beans are transported to mill, then removing the outer skin before crashing it into a fine powder. Subsequently, the powder is graded by different level and packed into bags for selling a good price to middleman. At this point, the powder is roasted at a high temperature in the factory. Finally, the roasted powder is packed into airtight package and sold to retailers.
+
+**Review**
+
+Overview：
+1. Overview 的起點：圖上沒有採收，第一步是人工挑豆。
+2. the selling of packages：有現成名詞就用名詞；賣的是包裝好的咖啡，不是 packages。
+3. 對照模板：stages 後面少一個逗號，and ending 前面多一個逗號。
+4. 說有三個階段，但沒點名，Body 也只有兩段。
+
+跟圖不符（最重要）：
+5. Body 2 的 powder：圖上 7–12 步都是豆子，沒有磨成粉；這張圖的 mill 只是「加工廠」。每個 powder 都要改回豆子，磨粉那一步刪掉。
+6. Body 1 第一句：步驟 1（用手挑）和步驟 2（用篩子清洗）混在一起；by farmers 可以換成「用什麼做」（by hand）。
+7. 自己加的細節：a good price、middleman、airtight，圖上都沒有。
+
+冠詞：
+8. in sun、in silo、to next place、to mill、into airtight package，五處都缺冠詞。
+
+詞性與句型：
+9. for roughly choosing：目的用 to + 動詞；roughly 意思不對。
+10. temporary：修飾動詞要用副詞。
+11. switching to next place：switch 是「切換」不是「移動」；這句可以直接刪。
+12. then removing the outer skin：缺主詞和被動；去殼用圖上的字（hull）寫成被動。
+13. graded by different level：分級是依品質分。
+14. packed into bags for selling：目的用 to + 動詞。
+15. At this point：適合同一階段的下一步；烘焙是換地方後的步驟，換一個表示「接下來」的詞。
+
+估分：約 6.0。先照第 5 點重寫 Body 2，再修第 8 點的冠詞，可以到 6.5。
+
+
+#### 第 2 稿（2026-09-29，約 190 字）
+
+> The process of producing dry-roasted coffee is illustrated in the diagram.
+>
+> Overall, it is a linear process consisting of twelve steps, which can be grouped into three main stages. It begins with the sorting of coffee beans in the farm, then sends to the factory, and ends with the selling of product.
+>
+> First of all, the coffee beans are filtered and cleaned by hand for roughly choosing the good ones. After that, the beans are dried in sun for four weeks. During the period, they are raked and turned to make sure they are completely dried. Once this step is completed, the dried beans are stored in silo temporary.
+>
+> Following this, the beans are transported to mill, then the outer skin is removed. Subsequently, the beans is graded by different quality and packed into bags for selling a different price. Afterwards, the beans is roasted at a high temperature in the factory. Finally, the roasted beans is packed into airtight packages and sold to retailers.
+
+**第 1 稿 15 點的修正狀況**
+- ✓ 已修好：1（起點）、3（模板逗號）、5（powder）、11（switching）、15（At this point）
+- △ 改了一半：
+  * 2：packages 拿掉了，但 the selling of 還在；product 前面缺冠詞。
+  * 4：第二句點出農場、工廠、販售三段，方向對；Body 還是只有兩段。
+  * 6：by hand 對了；filtered 還在，挑豆和篩洗還是混在一句。
+  * 7：middleman 拿掉了，但多了 a different price；airtight 還在。
+  * 8：in sun、in silo、to mill 還缺冠詞。
+  * 12：改成被動了，但兩個子句只用逗號加 then 連接。
+  * 13：還是 different，分級依的是品質本身。
+- ✗ 還沒改：9（for roughly choosing）、10（temporary）、14（for selling）
+
+**Review（新問題）**
+1. 主詞動詞一致：the beans is graded、the beans is roasted、the roasted beans is packed，beans 是複數（講義第 9 點）。
+2. Overview 第二句：then sends to the factory 的主詞是 It，流程不會「送」東西，被送的是豆子；三個動作也沒並列好。圖上是 mill，不是 factory。
+3. in the farm：農場用的介系詞不是 in。
+4. During the period：指剛才那四週，換一個更清楚的限定詞。
+
+估分：約 6.0–6.5。圖的準確度幾乎沒問題了；先修新問題第 1 點和舊的第 9、10、14 點，再補冠詞，可以穩在 6.5。
+
+
+#### 第 3 稿（2026-09-29，約 185 字）
+
+> The process of producing dry-roasted coffee is illustrated in the diagram.
+>
+> Overall, it is a linear process consisting of twelve steps, which can be grouped into three main stages. It begins with the sorting of coffee beans in the farm, then production in the factory, and ends with the selling of product.
+>
+> First of all, the coffee beans are filtered and cleaned by hand for roughly choosing the good ones. After that, the beans are dried in sun for four weeks. During this period, they are raked and turned to make sure they are completely dried. Once this step is completed, the dried beans are stored in silo temporary.
+>
+> Following this, the beans are transported to mill, then the outer skin is removed. Subsequently, the beans are graded by quality and packed into bags for selling. Afterwards, the beans are roasted at a high temperature in the factory. Finally, the roasted beans are packed into airtight packages and sold to retailers.
+
+**這稿修好的**
+- ✓ 主詞動詞一致（第 2 稿 1）、During this period（第 2 稿 4）、依品質分級（第 1 稿 13）、刪掉 a different price（第 1 稿 7 的一部分）
+
+**還在的問題（連續三稿，提示更具體）**
+1. for roughly choosing / for selling（第 1 稿 9、14）：目的用 to + 動詞（同 1.13 *is washed to remove insects*）；挑豆是為了選好豆還是去壞豆？for selling 可以直接刪。
+2. temporary（第 1 稿 10）：加兩個字母變副詞。
+3. 冠詞（第 1 稿 8）：in sun（只有一個太陽）、in silo、to mill（第一次提到）。
+4. in the farm：農場的介系詞跟「在島上」一樣。
+5. the selling of product（第 1 稿 2）：「販售」的名詞是四個字母的字；product 前面要冠詞，說清楚是包裝好的咖啡。
+6. then the outer skin is removed（第 1 稿 12）：兩個完整句子不能只用逗號接；加 and，或用 where 帶出去殼。
+7. filtered（第 1 稿 6）：改成 sorted，剛好對上步驟 1（用手挑）和步驟 2（篩洗）。
+8. airtight（第 1 稿 7）：圖上沒有，刪掉。
+9. Overview 第二句（第 2 稿 2）：中間 then production in the factory 沒有動詞；前後都是「動詞 + with」，中間也要一個動詞（例如「移到」）；factory 照圖改成 mill。
+
+估分：約 6.5。第 4 稿先自己照 0 節清單掃一遍，再對照這份 review。
+
+
+#### 第 4 稿（2026-09-29，約 185 字）
+
+> The process of producing dry-roasted coffee is illustrated in the diagram.
+>
+> Overall, it is a linear process consisting of twelve steps, which can be grouped into three main stages. It begins with the sorting of coffee beans in the farm, then production in the factory, and ends with the selling of product.
+>
+> First of all, the coffee beans are filtered and cleaned by farmers for roughly choosing the good ones. After that, the beans are dried in sun for four weeks. During this period, they are raked and turned to make sure they are completely dried. Once this step is completed, the dried beans are stored in silo temporary.
+>
+> Following this, the beans are transported to mill, where the outer skin is removed. Subsequently, the beans are graded by quality and packed into bags for selling. Afterwards, the beans are roasted at a high temperature in the factory. Finally, the roasted beans are packed into airtight packages and sold to retailers.
+
+**對照第 3 稿**
+- ✓ 修好：6（用 where 接去殼）
+- ↩ 退回：by hand 又變回 by farmers（第 2 稿已改對）
+- ✗ 其餘同第 3 稿：1（for + V-ing）、2（temporary）、3（冠詞）、4（in the farm）、5（the selling of product）、7（filtered）、8（airtight）、9（Overview 中間沒有動詞）
+
+### 1.13 課本範例（二）果醬製程：段落拆解
+
+課本 Ch.10 的高分範文（流程圖：水果果醬的製作，9 個步驟，約 163 字）。原文請看課本；這裡只拆它的寫法。
+
+| 段落 | 點 | 推進 |
+|---|---|---|
+| Intro + Overview（合成一段） | Intro | 改寫題目：圖說明製作果醬的程序（用 procedure 換掉 process） |
+| | Overview | **Overall, it is clear that** + 共幾個步驟 → **beginning with … and ending with …**（起點、終點）→ **namely**（點名兩個主要階段：準備、烹煮） |
+| Body 1：準備階段 | 1. 挑選 | **The first stage of the process is** + V-ing：挑出熟成的水果 |
+| | 2. 清洗 | **At the next stage**（中間）：被動 is washed + **to remove**（目的）：去掉蟲和髒污 |
+| | 3. 去皮去籽 | **Then**（中間）：被動 are removed + **, leaving …**（結果）：只剩果肉 |
+| | 4. 打泥加料 | **Subsequently**（中間）：被動 is pulped + **and then** 接下一個動作：加入糖、檸檬酸、果膠 |
+| Body 2：烹煮階段 | 5. 加熱 | **During the cooking stage**（切入）：被動 is heated **and then** cooked，帶出時間（約 15 分鐘） |
+| | 6. 裝罐封口 | **After the mixture has cooled**（完成式，表示前一步做完）→ 被動 is poured + **, which are then sealed**（關係子句接下一步）+ **to preserve**（目的） |
+| | 7. 儲存 | **can then be stored**（情態動詞 + 被動）：最後一步 |
+
+為什麼高分：
+- Overview 一句就回答了 1.11 的四個問題裡的三個：幾個步驟、從哪開始、在哪結束，再用 namely 把 9 步收成 2 個階段。
+- Body 1 = 第一個階段、Body 2 = 第二個階段，分段跟 overview 講的階段完全對應。
+- 幾乎每句都是被動，主角一直是水果和果醬，不是做的人。
+- 排序詞不重複：The first stage → At the next stage → Then → Subsequently → During → After。
+- 用一句話串起兩個步驟，不是一步一句：and then、, leaving …、, which are then …。
+
+值得學的五個結構：
+- 目的：被動 + **to + 動詞**（is washed to remove …、are sealed to preserve …）
+- 結果：**, leaving …**（分詞構句，說明做完剩下什麼）
+- 前一步完成：**After + 主詞 + has + 過去分詞**, …
+- 接下一步：**, which are then + 過去分詞**
+- 最後一步：**can then be + 過去分詞**
+
+跟 1.11 的差別：這篇把 Intro 和 Overview 合成一段，全文 3 段。兩種都可以；分成 4 段比較清楚，合成一段比較省字。
+
+### 1.14 課本範例：即溶咖啡製程：段落拆解
+
+課本的高分範文（流程圖：即溶咖啡怎麼做，12 個步驟）。原文請看課本；這裡只拆它的寫法。
+
+課本提示（改寫）：
+- 12 個步驟很多，要寫得有效率才涵蓋得完：兩個步驟合成一句。
+- 主動和被動混著用，不要每句都是同一個句型。
+- 一定要有 overview，總結主要階段。
+
+| 段落 | 點 | 推進 |
+|---|---|---|
+| Intro + Overview（合成一段） | Intro | 改寫題目：flowchart 說明做即溶咖啡的方法（用 method 換掉 process）+ **from … to …**（起點到終點） |
+| | Overview | **In general, it is clear from the diagram that** + 共 12 個步驟 → **can be divided into three main phases**（點名三個階段：準備、加工、包裝配送） |
+| Body | 1. 採收與乾燥 | **The first stage in the process is** + V-ing **and then** V-ing（主動動名詞，一句兩步） |
+| | 2. 烘焙與冷卻 | **At the next stage**（中間）：被動 are roasted **and then** cooled |
+| | 3. 研磨與加水 | **Subsequently**（中間）：被動 are ground into a powder **and then** mixed with water |
+| | 4. 過濾 | 被動 is strained + **to separate … from …**（目的） |
+| | 5. 冷凍乾燥 | **Then**（中間）：被動 is freeze-dried + **, locking …**（結果） |
+| | 6. 二次研磨 | **After that**（中間）：被動 is ground for a second time |
+| | 7. 真空乾燥與裝罐 | **After it has been ground again**（完成式被動，表示前一步做完）→ 被動 is dried **and then** packed + **ready to be …**（最後的配送和販售） |
+
+為什麼高分：
+- 12 個步驟全部涵蓋，但只用了 7 句：幾乎每句都用 and then 放兩個步驟。
+- 開頭一句用主動（picking … drying），之後改被動，照提示混著用。
+- 排序詞不重複：The first stage → At the next stage → Subsequently → Then → After that → After。
+- Overview 用 from … to … 和 three main phases 把 12 步收成 3 段。
+
+可以做得更好的地方：Overview 說有三個階段，但 Body 只有一段。照 1.11 的 4 段結構，把 Body 分成兩段（例如準備＋加工一段、包裝配送一段），分段就會跟 overview 對上。
+
+跟 1.13 果醬範文共用的結構：**to + 動詞**（目的）、**, V-ing …**（結果）、**After + has (been) + 過去分詞**（前一步完成）。這三個是流程圖最常用的高分句型。
+
+---
+
+## 2. Task 2（40 分鐘，≥ 250 字）
+
+### 2.1 結構與字數（筆記本）
+
+| 段落 | 句數 | 字數 |
+|---|---|---|
+| Introduction | 3 | ~30 |
+| One aspect | 8–9 | 80–90 |
+| Another aspect | 8–9 | 80–90 |
+| Conclusion | 6–8 | 60–80 |
+
+合計 250–280。（結論寫 2–3 句、40–60 字也足夠，時間不夠時優先保 body。）
+時間分配：5 分鐘審題、列點 → 30 分鐘寫 → 5 分鐘檢查。
+
+**One aspect（Body 段）的內部結構：3–4 個點**
+
+| 部分 | 內容 | 句數 | 字數 |
+|---|---|---|---|
+| 點 1 | 切入詞帶出（In terms of the positive aspects, …），同時當 topic sentence + 至少一個 Support（解釋／結果／理由／例子） | ≥ 2 | 20–40 |
+| 點 2 | 補充詞帶出（Moreover, …）+ 至少一個 Support | ≥ 2 | 20–40 |
+| 點 3 | 補充詞帶出（Furthermore, … / In addition to this, …）+ 至少一個 Support | ≥ 2 | 20–40 |
+| 點 4（可選） | 補充詞帶出（Another advantage is that… / More worryingly, …）+ 至少一個 Support | ≥ 2 | 20–40 |
+
+- 字數對齊：一段 80–90 字的話，3 個點每點約 27–30 字、4 個點每點約 20–22 字；寫到 40 字的點最多一個。一段要超過 90 字，也要照顧結論和另一段的字數，總數停在 250–280。
+- 一個點只放一個主張；Support 不是換句話重講，要多給一層（為什麼、會怎樣、例如什麼）。
+- 最強或最嚴重的點放最後（More worryingly, …）。
+- 範例：2.12 課本 Sample 2 的優點段、缺點段各 4 組，每組就是 Point + Support。
+
+骨架（套 2.4 句型）：
+> In terms of the positive aspects, [topic] can [benefit 1]. In other words, / This is because … .（點 1：Point + 解釋或理由）
+> Moreover, [benefit 2]. As a result, … .（點 2：Point + 結果）
+> Furthermore, / In addition to this, [benefit 3], which can … . For example, … .（點 3：Point + 結果 + 例子）
+> Another advantage is that [benefit 4]. This is because … .（點 4，可選：Point + 理由；缺點段用 More worryingly 放最嚴重的點）
+
+各題型的段落骨架與專用句型見 2.5。
+
+### 2.2 技巧（課本解析 + 兩篇踩過的坑）
+
+1. 回答題目的每一部分；結論要明說自己的觀點。
+2. 每個論點都要「支撐、發展、延伸」：理由 → 例子 → 結果 → 解釋。一個論點寫透，勝過三個論點各寫一句。
+3. 不用把想到的點全寫，挑最好的 2–3 個。
+4. 不是列清單：用連接詞和 signposting 把句子串起來（見 2.4）。
+5. 同義替換題目的字，不整句照抄（見 2.3）。
+6. 內容要具體：do more valuable things → enjoy more leisure time with their families and friends；enjoy life → 補上「做什麼、跟誰」。
+7. Intro 的預告要對得上 body：intro 寫 quality of life，body 就講身心健康與休閒。
+8. 立場一致：largely agree 之後的讓步段不推翻立場。
+9. 例子用具體國家或數據更有力：Several countries, including Iceland, have trialled…
+10. 同一段裡「改善健康」不要講兩次：topic sentence 放大的概念（well-being / quality of life），段尾再具體到 physical and mental health。
+
+### 2.3 同義替換（避免重複題目用字）
+
+| 題目常用字 | 替換 |
+|---|---|
+| advantages | benefits, positive aspects, merits, upsides, arguments in favour of；pros（口語，最多用一次） |
+| disadvantages | drawbacks, downsides, negative aspects, arguments against；cons（口語，最多用一次） |
+| outweigh | the benefits far outweigh the drawbacks / the drawbacks are outweighed by the benefits / on balance, the advantages are greater than the disadvantages |
+| people | individuals, workers, employees, the public, citizens |
+| important | essential, crucial, vital, of greater importance |
+| improve | enhance, boost（morale / happiness）, raise（standards） |
+| big / many | significant, considerable, substantial, a large number of |
+| company | business, employer, firm, organisation |
+| the working week | working hours, work schedules, a four-day week |
+| think | believe, argue, maintain, hold the view that |
+
+### 2.4 共同句型與連接詞（所有 Task 2 題型通用）
+
+**Intro（3 句：背景 → 改寫題目 → 本文要做什麼 / 立場）**
+
+背景：
+  * Nowadays, it is often argued that…
+  * In recent years, many people have argued that…
+  * It is widely believed that…
+  * X has become a controversial issue in recent years.
+
+他人觀點（改寫題目）：
+  * They believe that…
+  * Supporters of this view claim that…
+
+本文要做什麼：
+  * This essay will discuss…
+  * In this essay, I will…
+
+**Body 的 topic sentence**
+
+切入、分類：
+  * In terms of…,
+    * In terms of the positive aspects, …
+  * As for…,
+    * As for the benefits of [topic], …
+    * As for the drawbacks of [topic], …
+  * Turning to…,
+  * With regard to…,
+
+第一點：
+  * One major advantage / benefit / drawback of [topic] is that…
+    * One major benefit of [topic] is that it improves… / it can improve… / it would improve…
+      三種強度：improves = 已確立的事實（強）；can improve = 可能、有潛力（保守，最常用）；would improve = 假設性的政策（題目提議、尚未實施）。雅思偏好適度保守，多用 can / may / could。
+
+補充第二點：
+  * Moreover, …
+  * Furthermore, …
+  * In addition to this, …
+  * Another benefit is that…
+  * A further problem is that…
+
+**支撐（理由 → 例子 → 結果 → 解釋）**
+
+理由：
+  * This is because…
+  * This is due to the fact that…
+  * The reason for this is that…
+
+例子：
+  * For example, [具體國家 / 數據 / 情境]…
+  * For instance, …
+  * A case in point is…
+  * such as… / including…
+
+結果：
+  * As a result, …
+  * Consequently, …
+  * Therefore, …
+  * This means that…
+  * …, which could / can…
+
+解釋：
+  * In other words, …
+  * …, which means…
+
+**對比與讓步**
+
+  * However, …
+  * Nevertheless, …
+  * In contrast, …
+  * On the other hand, …
+  * More worryingly, …
+  * Although…, …
+  * While it is true that…, …
+  * …, while…
+  * …, which may not be suitable for every…
+
+**Conclusion（重申立場 → 一句理由 → 可選的條件或建議；不加新論點）**
+
+開頭：
+  * In conclusion,
+  * To conclude,
+  * To sum up,
+  * In summary,
+  * Overall,
+  * On balance,（適合 outweigh 題）
+  * Taking everything into account,
+
+立場：
+  * I believe that…
+  * I am convinced that…
+  * I would argue that…
+  * In my view, …
+  * It seems to me that…
+  * I remain convinced that…（暗示前面有讓步、立場不變）
+
+  立場句要跟 intro 換說法：intro 用 I largely agree with this view，結論用 I remain convinced that / I would argue that。別疊字（In my opinion, I think… 是兩個「我認為」）。
+
+理由：
+  * This is because…
+  * For these reasons, …
+
+條件或建議：
+  * Nevertheless, [governments / employers] should recognise that…
+
+**完整範例（立場 → 理由 → 條件或建議；順序對應 2.5 的 A、B）**
+
+A. Advantages / disadvantages——優點大於缺點（outweigh）：
+   To sum up, although there are strong arguments both for and against [topic], I would argue that the benefits outweigh the drawbacks. This is because it offers a practical alternative to [the current situation], while its downsides, such as [drawback], can be managed through strict regulation.
+
+B-1. To what extent——同意：
+   In conclusion, I remain convinced that the working week should be shortened where possible, since this would improve work-life balance and could even raise productivity. Nevertheless, governments and employers should recognise that different professions require different working hours.
+
+B-2. To what extent——部分同意：
+   On balance, I partly agree with this view: [X] clearly brings [benefit], but it should not be applied to every [sector]. For these reasons, a flexible approach that takes local conditions into account would be more effective than a single rule.
+
+B-3. To what extent——不同意：
+   In conclusion, it seems to me that the disadvantages of [X] far outweigh its benefits, mainly because [reason]. Unless [condition], I believe this policy should not be introduced.
+
+### 2.5 題型專用
+
+**A. Advantages / disadvantages（課本 Ch.19）**
+
+題目寫法：What are the advantages and disadvantages of…? / Do the advantages outweigh the disadvantages?
+
+段落骨架：Intro（說明兩面都會談，並預告結論）→ 優點段 → 缺點段 → 結論（明說哪邊更重要，給一個理由）
+
+注意：
+- 兩面都要寫，各一段，不能只寫一面。
+- 問 outweigh 的話，intro 和 conclusion 都要明說哪邊勝。
+- 優缺點的字要輪替：advantages / benefits / positive aspects / merits；disadvantages / drawbacks / downsides / negative aspects。
+
+句型：
+- Intro：
+  * In this essay, the advantages and disadvantages of [topic] will be discussed, and I will conclude by saying that the benefits outweigh the drawbacks.
+  * In this essay, the advantages and disadvantages of [topic] will be discussed, and I will conclude by saying that the benefits are more important than the drawbacks.
+  （outweigh 題 intro 就要說出立場；What are the advantages and disadvantages? 題不必表態時，把 that 改成 whether）
+  * While [topic] brings several benefits, it also has some drawbacks; this essay will examine both before arguing that…
+- 優點段：
+  * In terms of the positive aspects, …
+  * As for the benefits of [topic], …
+  * One major advantage of [topic] is that…
+  * Another benefit is that…
+  * In addition to this, …
+- 缺點段：
+  * As for the drawbacks of [topic], …
+  * Turning to the negative aspects, …
+  * Furthermore, …
+  * A further problem is that…
+  * More worryingly, …
+  * This can lead to…
+- 結論第一句（擇一；前半「兩面都有道理」、後半「哪邊勝」，兩半都可以互換）：
+  - In conclusion, although there are strong arguments both **for and against** [topic], I believe that the benefits outweigh the drawbacks.（最常見，順序 for 在前）
+  - In conclusion, although there are strong arguments both against and **in support of** [topic], I believe that the benefits are of more importance than the drawbacks.
+  - In conclusion, although there are strong arguments both **supporting and opposing** [topic], I would argue that the benefits outweigh the drawbacks.
+  - In conclusion, although there are strong arguments **on both sides of this debate**, I remain convinced that the benefits outweigh the drawbacks.（不必重複題目字）
+  - 課本原句 both against and in favour of [topic] 也可以，只是順序偏彆扭。
+- 結論第二句（給理由）：
+  * This is because it is essential to find a [practical] and viable alternative to …, and the drawbacks such as … can be dealt with through [strict government regulation].
+
+**B. To what extent do you agree or disagree（四天工作週）**
+
+題目寫法：To what extent do you agree or disagree? / Do you agree or disagree?
+
+段落骨架：Intro（背景 → 改寫題目 → 立場：I largely agree, although…）→ 支持 1 → 支持 2（含例子）→ 讓步段（反方觀點 + 為什麼不推翻立場）→ 結論（重申立場 + 原因 + 補充條件）
+
+注意：
+- 「to what extent」要回答「多大程度」：completely / largely / partly，intro 就說清楚，結論再說一次，中間不能變。
+- 讓步段是加分項：顯示你看到反方，但用 However / Nevertheless 接回自己的立場；篇幅要小於支持段。
+
+句型：
+- 立場：
+  * I largely / completely agree with this view, although I believe…
+  * To a large extent, I agree that…
+  * While I accept that…, I believe…
+  * I partly agree: … but …
+  * I strongly disagree with this idea because…
+- 支持段：
+  * One major advantage of [topic] is that it can improve…
+  * Another benefit is that [companies] could also gain from this change.
+  * Several countries, including Iceland, have trialled…
+  * When…, they are often more…, which can benefit [employers] as well.
+- 讓步段：
+  * However, [topic] may not be suitable for every profession.
+  * Admittedly, …
+  * It is true that…, but…
+  * Therefore, a flexible approach would be more realistic than applying the same rule to all [professions].
+- 結論：
+  * In conclusion, I believe [topic] should be … where possible because…
+  * In conclusion, while there are some drawbacks, I remain convinced that…
+  * Nevertheless, governments and employers should recognise that different … require different …
+
+（其他題型——discuss both views、problem / solution——練到再補。）
+
+### 2.6 主題字彙：工作與生活
+
+work-life balance · well-being · quality of life · burnout / exhaustion / stress · heavy workloads · long commuting hours · a lack of personal time · relax / recharge / unwind · pursue hobbies / interests · quality time with loved ones · physical and mental health · productivity / output · morale · motivated / engaged / focused / efficient · retain staff · operate around the clock / 24 hours a day, seven days a week · throughout the week · additional staff · work / time pressure · a flexible / tailored approach · a one-size-fits-all rule
+
+### 2.7 常見錯誤（自己踩過的）
+
+| 寫成 | 應該是 | 規則 |
+|---|---|---|
+| experience exhaust | experience exhaustion | 動詞後接名詞 |
+| feeling more satisfy | feeling more satisfied | feel + 形容詞；人的感受用 -ed |
+| less stressful（形容人） | less stressed | -ful 形容事物，-ed 形容人（boring / bored） |
+| spend time to do | spend time doing | spend + time + V-ing |
+| pursue interest / fewer mistake / all profession | interests / mistakes / professions | 泛指、fewer、all → 複數 |
+| employee's salary | employee salaries / employees' salaries | 名詞 + 名詞，或複數所有格 |
+| the rest four countries | the other four / the remaining four | rest 後面不能直接接數字 |
+| get benefits from / gain profits from | benefit / gain / profit from | 單一動詞 + from，不加名詞 |
+| improve happiness | improve well-being / quality of life；boost happiness | 搭配 |
+| operate can not stop | operate around the clock | 動詞後接副詞片語，不能再接動詞 |
+| through out | throughout | 一個字 |
+| 7x24 | 24/7（正式：around the clock） | 順序與寫法 |
+| making it from A to B | which took it from A to B | making + 受詞 只能接補語 |
+| Whereas + 句子單獨成句 | 併入前句，或用 In contrast, | 從屬連接詞不能單獨開句 |
+| Spain rose to 20% | the rate in Spain rose to 20% | 升降的是數字 |
+| fell slowly（一年內掉 0.5 點） | fell slightly | 幅度 vs 速度 |
+| do more valuable things | enjoy more leisure time with their families and friends | 太籠統 → 具體 |
+
+### 2.8 完成稿範例：四天工作週（To what extent do you agree，約 270 字）
+
+> In recent years, many people have argued that the traditional five-day working week is no longer suitable for modern society. They believe that reducing it to four days would improve people's health and allow people to do more valuable things. I largely agree with this view, although I believe some industries would not allow their employees to reduce their working hours.
+>
+> One major advantage of a shorter working week is that it can improve people's happiness. Many employees experience exhaustion, long commuting hours and a lack of personal time. Having an extra day off would allow workers to relax, pursue interests or spend quality time with loved ones, which could improve both physical and mental health. As a result, employees may return to work feeling more satisfied and efficient.
+>
+> Another benefit is that companies could also gain from this change. Several countries, including Iceland, have trialled shorter working weeks without reducing employee salaries, and many businesses reported that output remained stable while employee productivity increased. When workers are happier and less stressed, they are often more motivated and make fewer mistakes, which can benefit employers as well.
+>
+> However, a four-day working week may not be suitable for every profession. Hospitals, emergency services and public transport operate 24/7 and require staff throughout the week. In these sectors, reducing working hours without hiring additional workers could place greater time pressure on existing workers and increase costs. Therefore, a flexible approach would be more realistic than applying the same rule to all professions.
+>
+> In conclusion, I believe the working week should be reduced where possible because it would improve work-life balance and could even increase productivity. Nevertheless, governments and employers should recognize that different professions require different working hours.
+
+估分 6.5–7。還能往上的三處：拼字一致（trialled 英式 vs recognize 美式，改 recognise）；improve people's happiness → well-being / quality of life；do more valuable things → 具體寫出「跟誰、做什麼」。
+
+### 2.9 主題字彙與句型：Globalization（優缺點題）
+
+**優點動詞搭配**
+enhance communication · promote cooperation / cultural understanding · encourage / drive innovation · strengthen economies · improve living standards · boost / stimulate economic growth · attract foreign investment · expand into overseas markets · reduce trade barriers · create employment opportunities · facilitate international communication · bridge geographical distances · access information instantly
+
+**缺點動詞搭配**
+widen the wealth gap · threaten local businesses · undermine cultural identity · increase pollution / income inequality · exploit cheap labour · lose traditional customs · disrupt supply chains · dominate the market · adopt Western lifestyles
+
+**名詞**
+- 經濟：global economy · international trade · multinational corporation (MNC) · foreign investment · free trade · tariffs · supply chain · outsourcing / offshoring · labour market · skilled workforce · competitiveness
+- 文化：cultural exchange / diversity · Western influence · local identity · cultural heritage · intercultural / cross-cultural communication
+- 科技：technological advancement · digital communication · collaboration · interconnected world
+- 社會與環境：income inequality · environmental impact · carbon emissions · sustainable development · renewable energy · environmental regulations
+- 工作與教育：remote workforce · international recruitment · cross-border employment · career opportunities abroad · global competition · student exchange programmes · global citizenship
+
+**易混字**
+- abroad（在國外）vs aboard（在船／機上）
+- outsource (v.) / outsourcing (n.)；offshore (adj./v.) / offshoring (n.)
+- facilitate = 讓某事更容易（被動、移除障礙）；stimulate = 刺激、促進（主動）
+- undermine = 削弱；exploit = 不公平地利用；widen = 擴大（差距）
+- economy / economic / economical：
+  * economy (n.) = 經濟、經濟體：the global economy, a strong economy（另一義「節省」：economy class）
+  * economic (adj.) = 跟經濟有關的：economic growth, economic development, economic crisis, economic policy
+  * economical (adj.) = 省錢、省資源的：an economical car, an economical way to produce goods
+  * 同家族：economics (n.) 經濟學；economist (n.) 經濟學家；economise (v.) 節省
+  * 常見錯誤：economical growth ✗ → economic growth；economic car ✗ → economical car
+
+**各段起手句**
+- Intro：Globalization has become one of the defining features of the modern world. / In today's interconnected world, countries are more closely linked than ever before.
+- 優點段：One major benefit is that… / Another significant advantage is… / This enables people to…
+- 缺點段：However, this trend also brings several challenges. / Despite these benefits, some drawbacks cannot be ignored. / One concern is that…
+- 結論：Overall, globalization presents both opportunities and challenges. / Striking a balance between economic development and cultural preservation is essential.
+
+### 2.10 規劃範例：Globalization（Do the pros outweigh the cons?）
+
+老師的骨架：Intro（介紹主題 + 立場：優點多）→ Pros ×3 → Cons ×2–3 → Conclusion（總結要點）。
+
+5 分鐘 plan 的樣子（講義的 student's notes，列點不寫句子）：
+- Intro：科技與通訊發展 → 世界越來越小 = globalization → 有利有弊 → 我的立場：advantages far outweigh disadvantages
+- Pros：(1) 已開發國家把生產外包到較貧窮國家，成本低（例：車廠外包零件）→ 消費者買到更便宜的商品 + 較貧窮國家多了工作機會；(2) 開發中國家的人到已開發國家工作、留學 → 降低失業；(3) 疫病、人道危機等問題可以透過國際合作更快解決
+- Cons：(1) 外包對較貧窮國家有利，但天然資源可能被低價消耗；(2) 大企業剝削廉價勞工、忽視勞工權益；人才外流 → 原國家缺乏有經驗的人力
+- Conclusion：對已開發與開發中國家都有利有弊 → 我認為優點大於缺點
+
+注意：3 個 pros + 2–3 個 cons 在 250 字裡每點只能各寫一兩句，發展深度會不夠。目標 6.5–7 的話，改成 2 個 pros + 2 個 cons、每點「理由 → 例子 → 結果」寫透，比較安全（見 2.2 第 2、3 條）。
+
+### 2.11 範例文章：Globalization（Do the pros outweigh the cons?，約 290 字）
+
+依 2.10 的規劃改成 2 個優點 + 2 個缺點，每點都有「理由 → 例子 → 結果」。
+
+> In today's interconnected world, advances in technology and telecommunications have made countries more closely linked than ever before, a process known as globalization. While this trend brings certain drawbacks, I believe that its benefits far outweigh its negative aspects.
+>
+> One major benefit of globalization is that it can stimulate economic growth in both developed and developing nations. Many multinational corporations outsource production to countries where labour costs are lower; for example, Japanese car manufacturers produce parts in several other Asian countries. As a result, consumers can purchase goods at lower prices, while workers in less wealthy countries gain employment opportunities that did not previously exist. Furthermore, closer international cooperation enables governments to respond more effectively to global crises. During disease outbreaks, for instance, countries can share medical research and supplies, which helps to reduce suffering far more quickly than any nation could achieve alone.
+>
+> However, globalization also brings several challenges. One concern is that large corporations may exploit cheap labour, paying low wages and ignoring workers' rights in order to cut costs. In addition, poorer countries may sell their natural resources at very low prices, and their most qualified workers often move abroad in search of higher salaries. This brain drain can leave the original countries without the skilled workforce they need in order to develop.
+>
+> In conclusion, although there are strong arguments both for and against globalization, I remain convinced that the benefits outweigh the drawbacks. This is because it creates jobs, lowers prices and strengthens international cooperation, while problems such as labour exploitation can be dealt with through stricter international regulations.
+
+用到的句型：In today's interconnected world（2.9 起手句）· One major benefit of [topic] is that it can…（2.4 第一點）· Furthermore / In addition（補充）· for example / for instance（例子）· As a result（結果）· However, … also brings several challenges / One concern is that…（缺點段）· both for and against / I remain convinced that…（2.4 結論）。
+
+### 2.12 課本範例（二）核能：段落拆解
+
+課本 Ch.19 的高分範文（題目：用核能取代化石燃料的優缺點）。原文請看課本；這裡只拆它的寫法。
+
+| 段落 | 點 | 推進 |
+|---|---|---|
+| Intro（3 句） | 背景 | 常有人主張用核能發電取代排碳的化石燃料 |
+| | 本文要做什麼 | **In this essay**：討論優缺點 |
+| | 預告結論 | 最後說明優點還是缺點比較重要 |
+| 優點段 | 1. 營運便宜 | **In terms of**（切入）→ 電廠蓋好後營運成本低 → **In other words**（解釋）：燃料便宜 |
+| | 2. 燃料不會用完 | **Moreover**（補充）：燃料不會用完 → **As a result**（結果）：不會因供應減少而缺電 |
+| | 3. 在地工作 | **In addition to this**（補充）：創造在地工作 → **, which can**（結果）：帶動地方經濟 |
+| | 4. 安全 | **Another advantage**（補充）：核電廠相當安全 → **due to the fact that**（理由）：安全設計降低人為疏失 |
+| 缺點段 | 1. 意外危險 | **As for**（切入）→ 發生意外時極度危險 → **For example**（例子）：日本福島 |
+| | 2. 輻射廢料 | **… can also**（補充）：廢料危害環境數百年 → **Consequently**（結果）：處理成本很高 |
+| | 3. 水源污染 | **Furthermore**（補充）：污染在地水源 → **This is because**（理由）：冷卻水排回海中 |
+| | 4. 恐攻威脅 | **More worryingly**（補充，最嚴重的點放最後）：可能成為恐攻目標 → **Therefore**（結果）：需要額外保安 |
+| 結論（2 句） | 立場 | **In conclusion**（開頭）：兩面都有強力論點 → 我認為優點更重要 |
+| | 理由 | **This is because**（理由）：需要乾淨可行的替代能源，缺點可以靠嚴格的政府規範處理 |
+
+為什麼高分（課本解析的重點，改寫）：
+- 題目每一部分都回答了，結論明說立場。
+- 沒有把第一篇的點全部塞進來，而是挑最好的幾點，每點都用理由、例子、結果、解釋撐開。
+- 不是列清單：每個新點都有連接詞帶出，一個功能一個詞，不重複。
+- 用 benefits / drawbacks、positive aspects、arguments for and against 替換題目的 advantages / disadvantages。
+
+值得學的兩個結構：
+- 每個點「主張 → 連接詞 → 延伸」，而且連接詞的功能要對：In other words 是解釋（換句話說），As a result / , which can 是結果（導致什麼）。例：「成本低 → In other words（解釋）→ 燃料便宜」「燃料不會用完 → As a result（結果）→ 不會缺電」「創造工作 → , which can（結果）→ 帶動經濟」。
+- 缺點段用 More worryingly 把最嚴重的點放最後，比單純 Finally 更有力。
+
+---
+
+## 3. UK / US 拼字
+
+| UK | US |
+|---|---|
+| colour, flavour, labour, humour, harbour, neighbour, favourite | color, flavor, labor, humor, harbor, neighbor, favorite |
+| organise, realise, recognise | organize, realize, recognize |
+| centre, metre | center, meter |
+| travelled, cancelled | traveled, canceled |
+| programme | program |
+| analyse | analyze |
+| defence | defense |
+
+IELTS 兩種都接受，重點是全篇一致。用了 trialled、labour 就不要再出現 recognize。
+
+### 3.1 易拼錯字
+
+| 單字 | 重點 | 注意 |
+|---|---|---|
+| government | gover**n**ment | govern + ment，n 不能漏 |
+| environment | envir**on**ment | environ + ment，n 不能漏 |
+| corporation | corp**o**ration | corp 後面是 o，不是 a；跟 cooperation（合作）不同字 |
+| co-operate | co-op**e**rate | op 後面是 e，不是 a；也可以寫 cooperate（名詞 co-operation / cooperation），全篇一致 |
+| opportunity | opp**o**rtunity | 兩個 p，pp 後面是 o |
+| against | a**gain**st | 中間藏一個 gain |
+| fluctuate | fluct**u**ate | t 後面有 u；名詞 fluctuation 也一樣 |
+| threaten | thr**ea**ten | threat + en，ea 不能少 |
+| temperature | temper**a**ture | temper 後面還有一個 a，四個音節 |
+| modern | mod**er**n | r 只有一個，在 e 後面 |
+| valuable | val**u**able | value 去 e 再加 able |
+| argument | arg**u**ment | argue 去 e 再加 ment（跟 valuable 同一條規則） |
+| advantage | ad**van**tage | 中間是 van，不是 ven |
+| several | sev**er**al | 三個音節 |
+| flexible | flex**ible** | 字尾是 -ible |
+| pressure | pre**ss**ure | 兩個 s |
+| therefore | **therefore** | 一個字，不能分開寫 |
+| throughout | **throughout** | 一個字，不能分開寫 |
+| beginning | begin**n**ing | begin 加 -ing 時 n 要重複 |
+
+modern、valuable、advantage、several、flexible、pressure、therefore、throughout、beginning 是自己作文裡拼錯過的，交卷前照 0 節清單第 7 條檢查拼字時優先看。
+
+### 3.2 易混字
+
+| 單字 | 詞性 | 意思 | 例句 |
+|---|---|---|---|
+| phrase | n. / v. | 片語；用某種方式措辭 | a useful phrase / phrase the question politely |
+| rephrase | v. | 換個說法再說一次（通常是自己的話，讓意思更清楚） | Could you rephrase that? |
+| paraphrase | v. / n. | 用自己的話改寫別人的文字，意思不變 | Paraphrase the question in the introduction. |
+| paragraph | n. | 段落（拼法相近，意思無關） | the overview paragraph |
+
+rephrase 和 paraphrase 最容易混：寫 intro 時改寫的是「題目」，是別人的文字，所以用 paraphrase the question。
+</script>
+<script type="text/plain" id="md-en"># IELTS Writing: Techniques and Sentence Patterns
+
+Compiled from: the pitfalls in two practice pieces (Task 2 "four-day working week", Task 1 line graph "unemployment rates in five European countries"), the textbook's Chapter 19 commentary on advantages/disadvantages essays, and the paragraph plans and templates in my notebook.
+
+**Notation**: "A / B" = alternatives — choose one; the slash is not part of the sentence (e.g. *the benefits outweigh / are of more importance than the drawbacks* = two sentences, pick one). "[ ]" = fill in according to the question. "…" = omitted; add your own content.
+
+---
+
+## 0. Pre-submission checklist (both tasks)
+
+Ordered by how often I miss each one:
+
+1. **The subject is the figure, not the country** (Task 1): *the rate in Spain rose*, not *Spain rose*.
+2. **Singular / plural**: all / fewer / many / generic groups → plural (interests, mistakes, professions, workers).
+3. **Word class**: experience + noun; feel + adjective; less / more + adjective (parallel with *happier*).
+4. **Collocation**: improve + quality / health / balance; boost / increase + happiness / morale.
+5. **Articles**: the UK, the United Kingdom.
+6. **Tense**: Task 1 in the past tense throughout; Task 2 mainly in the present simple.
+7. **Spelling**: choose UK or US and keep it consistent throughout.
+8. **Repetition**: the same word or the same structure in adjacent sentences (making them… / making it…).
+9. **Word count**: Task 1 ≥ 150 (aim for 170–190); Task 2 ≥ 250 (aim for 250–280).
+10. **Copying the question**: borrowing nouns from the question is fine; copying whole sentences loses marks.
+11. **No contractions**: don't → do not, it's → it is, can't → cannot (flagged by my teacher).
+
+**Four checks for any replacement word**: right word class, right number, collocates naturally with the surrounding words, and makes sense in the paragraph's logic (without repeating).
+
+---
+
+## 1. Task 1 (20 minutes, ≥ 150 words)
+
+<!-- toc-group: Line graphs & general -->
+
+### 1.1 Structure
+
+| Paragraph | Content | Sentences | Words |
+|---|---|---|---|
+| Intro | Paraphrase the question in one sentence (change the verb, change the voice) | 1 | 15–20 |
+| Overview | Main trends + the most striking feature; no figures, or only the key ones | 2 | 25–40 |
+| Body 1 | Ranking and figures at the start → changes up to the middle of the period | 3–4 | 45–60 |
+| Body 2 | Later changes up to the end; comparisons and rankings | 4–5 | 55–75 |
+
+Total 150–195; aim for 170–190. (Final draft, actual: 17 / 29 / 50 / 78)
+
+- Timing: 2 minutes reading the chart and counting the direction of every line → 15 minutes writing → 3 minutes checking against the checklist.
+- A one-sentence paragraph should be merged into a neighbouring one.
+
+### 1.2 Techniques
+
+1. Before writing the overview, count the direction of every line (e.g. five countries: four up, one down). Missing a line costs Task Achievement marks.
+2. Reversals, crossovers and swaps between highest and lowest are the highlights of the chart — put them in the overview (e.g. Germany went from highest to lowest).
+3. Make the figure the subject: *the rate in X / unemployment in X / X's unemployment rate*, or rewrite as *X saw a rise to…*.
+4. **Size vs speed**: a change within a single year is about size only (*slightly*); only changes across several years are about speed or manner (*steadily, gradually*). When several countries fall by different amounts, use *converge* to state the result directly instead of choosing an adverb.
+5. *respectively* goes right after the paired figures: *…to 20% and 14% respectively*.
+6. Rankings must be precise: 14% is the second highest → *the two highest*, not *the highest*.
+7. *by* + a past year can take the past perfect (*By 2007, the rates had converged…*) — a grammar bonus.
+8. Use *figures / rates*, not *numbers*; use *the other four / the remaining four*, not *the rest four*.
+9. The overview and the body saying the same thing is by design (repeating information is fine); only repeated wording needs changing.
+10. *Whereas / although / while* are subordinating conjunctions and cannot start a sentence on their own; to contrast in a new sentence, use *In contrast, / By contrast,*.
+
+### 1.3 Time prepositions
+
+| Usage | Meaning | Example |
+|---|---|---|
+| in 2005 | at that point in time (a snapshot) | In 2005, Germany recorded the highest rate at 12%. |
+| by 2010 | up to that year (the end point of a change) | …climbed rapidly to 13% by 2010. |
+| from 2005 to 2010 / between 2005 and 2010 | start and end of the whole period | Unemployment in the UK rose from 5% to 8% between 2005 and 2010. |
+| over the period / over the five years | the whole period, without naming years | Unemployment in Germany declined over the period. |
+| during 2008 | within that year | The rate dipped slightly during 2008. |
+| by the end of the period | at the end | …leaving it the lowest by the end of the period. |
+
+Test: describing "what the figure was in that year" → *in*; describing "a change that accumulated up to that year" → *by*.
+*fell to 7.5% **in** 2008* = the fall happened within that year; *fell to 7.5% **by** 2008* = the fall began earlier and ended that year.
+
+### 1.4 Trend verbs and nouns
+
+| Direction | Verbs (past tense) | Nouns |
+|---|---|---|
+| Up | rose, increased, climbed, grew, surged (sharp rise), soared (dramatic rise) | a rise / an increase / growth / a surge in… |
+| Down | fell, dropped, declined, decreased, dipped (small fall), plunged / plummeted (sharp fall) | a fall / a drop / a decline / a decrease in… |
+| Flat | remained stable / steady, stayed constant, levelled off, plateaued | a plateau |
+| Fluctuating | fluctuated | fluctuations |
+| Highs and lows | peaked at, reached a high / low of, bottomed out at | a peak of… / a low of… |
+| Converging | converged at (around 8%) | — |
+| Reversing, overtaking | reversed, overtook | a reversal |
+
+Noun patterns: There was a dramatic rise in Spain's unemployment rate, from 9% to 20%. / Spain saw a sharp increase of 11 percentage points.
+
+### 1.5 Adverbs
+
+- **Size**: slightly / marginally (small), moderately (medium), considerably / significantly / substantially (large), dramatically / sharply (very large, and implying speed)
+- **Speed, manner**: gradually / steadily / slowly, rapidly / quickly, consistently
+- Common collocations: rose dramatically, fell slightly, declined steadily, increased gradually, remained broadly stable
+
+### 1.6 Comparison and ranking patterns
+
+- X recorded the highest rate at 12%, followed by Y at 10% and Z at 9%.
+- X and Y had considerably lower figures, at 5% and 4% respectively.
+- …, making them the two highest figures by 2010.
+- …, leaving it the lowest of the five countries by 2010.
+- Unemployment declined in X, which took it from the highest to the lowest.
+- X was the only country whose rate fell.
+- The rates in X, Y and Z converged at around 8%.
+- X's rate was twice as high as Y's. / X overtook Y in 2008.
+- The following three years saw further changes. / 2008 marked a turning point for four of the five countries.
+- The most striking feature is that…
+
+### 1.7 Paraphrasing the intro
+
+- The line graph illustrates / shows / compares how unemployment rates changed in five European countries between 2005 and 2010.
+- Changes in unemployment rates in five European countries between 2005 and 2010 are illustrated in the line graph. (passive)
+- Swaps: shows → illustrates / compares / gives information about; percentage → proportion; from … to … → between … and … / over a five-year period
+
+### 1.8 Model: my final draft (about 174 words)
+
+> Changes in unemployment rates in five European countries between 2005 and 2010 are illustrated in the line graph.
+>
+> Overall, unemployment declined in Germany, which took it from the highest to the lowest. In contrast, the rates of the other four countries increased, although there were some fluctuations.
+>
+> In 2005, Germany recorded the highest rate at 12%, followed by Greece at 10% and Spain at 9%. The UK and Ireland had considerably lower figures, at 5% and 4% respectively. By 2007, the three highest rates dropped to a similar level of around 8%, and the rest remained stable.
+>
+> The following three years saw further changes. The rates in Spain and Ireland rose dramatically to 20% and 14% respectively, making them the two highest figures by 2010, while the rate in Greece fell slightly to 7.5% in 2008 and climbed rapidly to 13% by 2010. Unemployment in the UK increased consistently from 5% to 8%.
+>
+> By contrast, the rate in Germany declined steadily from 8% to 7%, leaving it the lowest of the five countries by 2010.
+
+From 7 towards 7.5: one or two higher-level words (converge, plateau, surge, peak at), one correctly used past perfect, and treating 2008 as the shared turning point for four countries.
+
+<!-- toc-group: Bar charts -->
+
+### 1.9 Static charts (bar charts with no time axis)
+
+With no time axis there is no "trend"; the whole report is "comparison":
+
+- Swap the verbs for *had / stood at / recorded / accounted for*; no *rose / fell*.
+- Tense: present for the chart itself (*The bar chart shows…*), past for the 2005 data (*Poland had…*).
+- The overview needs two things: ① the extremes (which country is highest, which is lowest); ② the pattern shared across categories (e.g. in every country the youth rate is far higher than the overall rate — roughly double). Missing ② is the most common Task Achievement deduction.
+- Body 1: the two extremes (highest vs lowest, with actual figures). Body 2: the middle group, one category then the other, one comparison per sentence.
+- Fraction comparisons (*one fifth, two thirds*) are a bonus, but pair them with at least one actual figure; fractions without figures read as not reporting the data.
+- Gaps are in *percentage points*, not *percent*: *3.5 percentage points lower*. (*3.5 percent lower* is a relative amount and means something different.)
+- A rate is high or low, not much: *as high as*, not *as much as*; *as much rate as* does not exist.
+
+**Comparison patterns**
+
+- X's rate was twice / three times as high as Y's. / …was double the figure for Y.
+- Y's figure was only half / a third / two thirds of X's. / …roughly a fifth of the Polish rate.
+- X was 3.5 percentage points lower than Y. / X exceeded Y by 5 percentage points.
+- X had the second-highest rate, at 24%, followed by Y at 17.5%.
+- In every country, the rate for young adults was considerably higher than the overall rate.
+- The gap between the two groups was widest in X and narrowest in Y.
+- X and Y recorded almost identical figures, at around 7.5%.
+- Linkers and modifiers: compared with / whereas / while / by contrast / respectively / just / only / approximately / the population as a whole
+
+### 1.10 Practice: bar chart (youth vs overall unemployment in five countries, 2005) — first draft, to be revised
+
+> The bar chart shows the percentage of unemployment rates among young adults and total population in five European countries in 2005.
+>
+> Overall, Poland has the highest unemployment levels in all ages. In contrast, Denmark has the lowest rates, and much lower than other countries.
+>
+> In more specific terms, Poland has 35 percent of young adults and 15 percent for total that don't have jobs, compared with Denmark which has approximately one fifth as much as Poland among young adults and one sixth as much as in total.
+>
+> Turning to the unemployment rates in the other (three) countries, as for the unemployment rates among young people, Italy has two thirds as much rate as Poland, while Hungary has half as much as Poland, Germany is 3.5 percent lower than Hungary, which has twice as much as Denmark. However, as for the unemployment rates of total, Germany has higher rates, which has two thirds as much rate as Poland, Italy and Hungary both have half as much rate as Poland.
+
+**Revision list**
+
+1. The overview is missing the second feature: youth unemployment was far higher than the overall rate in all five countries.
+2. Tense: all 2005 data in the past tense (has → had).
+3. *in all ages* → there are only two categories; use *for both groups*.
+4. *and much lower than other countries* → incomplete comparison; add a subject and *the*.
+5. *the percentage of unemployment rates* → rates are already percentages; keep one.
+6. *don't have jobs* → colloquial; use *were unemployed / out of work*; *for total* → *of the total population*.
+7. *as much rate as* ×3 → use *as high as*, or *of X's figure*; vary the three structures.
+8. *3.5 percent lower* → *3.5 percentage points lower*.
+9. *which has twice as much as Denmark* → unclear reference (Hungary or Germany?).
+10. Paragraph 4 is one long comma splice — split it into 3–4 sentences; *Turning to…* and *as for…* are stacked, keep one; remove the brackets.
+11. Italy, Hungary and Germany have no actual figures; add at least one each.
+12. *Germany has higher rates* → higher than whom? Write *the second-highest rate*.
+
+Estimated band: about 6.0. Fixing 1, 2, 7, 10 and 11 gets it to 6.5; replacing the comparisons with the patterns in 1.9 can reach 7.
+
+<!-- toc-group: Process diagrams -->
+
+### 1.11 Process diagrams
+
+**Two kinds of process**
+- Manufacturing / production processes: how something is made (coffee, paper, bricks, recycled plastic, glass)
+- Natural processes: a natural cycle or development (the water cycle, the life cycle of a butterfly, how a plant grows, the formation of rocks)
+
+**Structure (4 paragraphs)**
+
+| Paragraph | Content | Sentences | Words |
+|---|---|---|---|
+| Intro | Paraphrase the question: what process the diagram shows | 1 | 15–20 |
+| Overview | How many main stages, where it starts and finishes, linear or cyclical; no details or figures | 1–2 | 25–40 |
+| Body 1 | The first half of the process | 3–5 | 55–70 |
+| Body 2 | The second half of the process | 3–5 | 55–70 |
+
+**Four questions before writing the overview**
+1. Where does it start?
+2. Where does it finish?
+3. How many main stages are there? (group the small steps into 2–4 main stages)
+4. Is it linear or cyclical?
+
+**Overview template**
+- Overall, it is a linear / cyclical process which consists of [three] main stages, involving [twelve] steps in total, beginning with the [noun] of … and ending with the [noun] of … .
+
+<!-- -->
+
+- Overall, it is a linear / cyclical process **which consists of** …
+- Overall, it is a linear / cyclical process **consisting of** …
+
+<!-- -->
+
+- Overall, the process consists of **[three] main stages, involving [twelve] steps in total**, beginning with … .
+- Overall, the process consists of **[number] main stages**, beginning with … .
+- Overall, the process consists of **[twelve] steps, which can be divided / grouped into [three] main stages**, beginning with … .
+- It is a linear / cyclical process.
+
+Notes: between *the* and *of* goes a noun or a V-ing (the sorting of beans, the packaging of the finished product); *the* and *of* come as a pair; when the action has its own noun, prefer it (production, storage, delivery, sale — not *the producing of*); *steps* are the small steps in the diagram and *main stages* are the groups you make from them; no comma before *and ending*.
+
+**Sequencing language**
+
+Start:
+  * Initially,
+  * First of all,
+  * To begin with,
+  * The first stage is to…
+  * At the beginning of the process,
+
+Middle:
+  * After that,
+  * Once this stage / step is complete,
+  * The next stage / step involves…
+  * Following this,
+  * Subsequently,
+  * Afterwards,
+  * At this point,
+  * Next,
+
+End:
+  * Finally,
+  * Lastly,
+  * The final stage is to…
+  * The last stage involves…
+  * Eventually,
+
+**Sequencing tips**
+
+- Don't keep using *Then*: rotate through the Middle list, or move *then* inside the sentence (The beans are then roasted.).
+- Two small steps in a row can share a sentence: The beans are sorted by hand and then cleaned.
+
+**Process verbs**
+- Starting: begin / start
+- Changing something: process / treat / transform / convert / crush / grind / heat / cool / dry / wash / filter / separate / mix / combine
+- Finishing: pack / package / distribute / transport / deliver; noun: the finished product
+
+**Grammar**
+- **Passive voice**: in a manufacturing process, the subject is the thing being made, not the person making it. Formula: subject + am / is / are + past participle.
+  * Workers sort the beans. → The beans are sorted by hand.
+  * Machines grind the beans. → The beans are ground.
+- **Tense**: processes use the present simple (unlike line graphs, which use the past).
+- **Subject–verb agreement**: The beans **are** roasted. / The coffee **is** packed. (coffee is uncountable, so *is*)
+- Leave out *by workers / by machines* unless how it is done matters (e.g. *by hand*).
+
+### 1.12 Practice: the dry method of coffee production (12 steps)
+
+**Plan** (a linear process, 12 steps → 3 main stages)
+- Stage 1 on the farm (1–5): sorted by hand → cleaned with a sieve → dried in the sun for four weeks → raked and turned → stored in a silo
+- Stage 2 at the mill (6–9): sent to a mill → hulled → graded → bagged
+- Stage 3 roasting and retail (10–12): sold → roasted → packed and sold
+- Body 1 covers the farm; Body 2 covers the mill through to retail
+
+**Words from the diagram**
+
+| Word | Meaning |
+|---|---|
+| sieve (n./v.) | a tool with small holes; to separate small things from larger ones with it |
+| rake (v.) | to turn over or level with a rake |
+| silo (n.) | a tall round tower for storing grain |
+| mill (n.) | a processing plant (originally a building where grain is ground into flour) |
+| hull (v.) / hulling | to remove the outer covering of a seed |
+| grade (v.) / grading | to sort by quality (good and bad beans) |
+
+**Model sentences**
+- Intro:
+  * The diagram illustrates the process involved in producing dry-roasted coffee.
+  * The process involved in producing dry-roasted coffee is illustrated in the given diagram.
+- Overview:
+  * Overall, the process consists of twelve steps, which can be divided into three main stages: preparation on the farm, processing at a mill, and roasting before the coffee is packed and sold.
+  * It is a linear process, beginning with the sorting of beans by hand and ending with the sale of the packaged product.
+
+
+#### Draft 1 (2026-09-29, about 200 words)
+
+> The process of producing dry-roasted coffee is illustrated in the diagram.
+>
+> Overall, it is a linear process which consists of three main stages involving twelve steps in total, beginning with the harvesting of coffee beans, and ending with the selling of packages.
+>
+> First of all, the coffee beans are filtered and cleaned by farmers for roughly choosing the good ones. After that, the beans are dried in sun for four weeks. During the period, they are raked and turned to make sure they are completely dried. Once this step is completed, the dried beans are stored in silo temporary before switching to next place.
+>
+> Following this, the beans are transported to mill, then removing the outer skin before crashing it into a fine powder. Subsequently, the powder is graded by different level and packed into bags for selling a good price to middleman. At this point, the powder is roasted at a high temperature in the factory. Finally, the roasted powder is packed into airtight package and sold to retailers.
+
+**Review**
+
+Overview:
+1. The overview's starting point: there is no harvesting in the diagram; the first step is sorting the beans by hand.
+2. *the selling of packages*: use the real noun when there is one; what is sold is the packaged coffee, not *packages*.
+3. Check against the template: a comma is missing after *stages*, and there is an extra comma before *and ending*.
+4. It says three main stages but does not name them, and the body has only two paragraphs.
+
+Not matching the diagram (most important):
+5. *powder* in Body 2: steps 7–12 are all about beans; nothing is ground into powder. In this diagram, *mill* just means a processing plant. Change every *powder* back to beans and delete the grinding step.
+6. Body 1, first sentence: step 1 (sorting by hand) and step 2 (cleaning with a sieve) are mixed together; *by farmers* can become how it is done (*by hand*).
+7. Added details: *a good price*, *middleman* and *airtight* are not in the diagram.
+
+Articles:
+8. *in sun*, *in silo*, *to next place*, *to mill*, *into airtight package*: all five need an article.
+
+Word class and structure:
+9. *for roughly choosing*: purpose takes *to* + verb; *roughly* is the wrong meaning.
+10. *temporary*: a verb needs an adverb.
+11. *switching to next place*: *switch* means change, not move; this clause can simply go.
+12. *then removing the outer skin*: no subject and no passive; use the diagram's word (*hull*) in the passive.
+13. *graded by different level*: grading is by quality.
+14. *packed into bags for selling*: purpose takes *to* + verb.
+15. *At this point*: suits the next step within the same stage; roasting happens after a change of place, so use a "next" linker instead.
+
+Estimated band: about 6.0. Rewriting Body 2 (point 5) and then fixing the articles (point 8) gets it to 6.5.
+
+
+#### Draft 2 (2026-09-29, about 190 words)
+
+> The process of producing dry-roasted coffee is illustrated in the diagram.
+>
+> Overall, it is a linear process consisting of twelve steps, which can be grouped into three main stages. It begins with the sorting of coffee beans in the farm, then sends to the factory, and ends with the selling of product.
+>
+> First of all, the coffee beans are filtered and cleaned by hand for roughly choosing the good ones. After that, the beans are dried in sun for four weeks. During the period, they are raked and turned to make sure they are completely dried. Once this step is completed, the dried beans are stored in silo temporary.
+>
+> Following this, the beans are transported to mill, then the outer skin is removed. Subsequently, the beans is graded by different quality and packed into bags for selling a different price. Afterwards, the beans is roasted at a high temperature in the factory. Finally, the roasted beans is packed into airtight packages and sold to retailers.
+
+**Status of the 15 points from Draft 1**
+- ✓ Fixed: 1 (starting point), 3 (template commas), 5 (*powder*), 11 (*switching*), 15 (*At this point*)
+- △ Partly fixed:
+  * 2: *packages* is gone, but *the selling of* remains; *product* needs an article.
+  * 4: the second sentence now names farm, factory and sale — the right idea; the body is still two paragraphs.
+  * 6: *by hand* is right; *filtered* remains, and sorting and sieving are still in one clause.
+  * 7: *middleman* is gone, but *a different price* is new; *airtight* remains.
+  * 8: *in sun*, *in silo* and *to mill* still need articles.
+  * 12: now passive, but the two clauses are joined only by a comma and *then*.
+  * 13: still *different*; grading is by quality itself.
+- ✗ Not yet: 9 (*for roughly choosing*), 10 (*temporary*), 14 (*for selling*)
+
+**Review (new points)**
+1. Subject–verb agreement: *the beans is graded*, *the beans is roasted*, *the roasted beans is packed* — *beans* is plural (handout point 9).
+2. Overview, second sentence: the subject of *then sends to the factory* is *It*; the process does not send anything, the beans are sent. The three actions are not parallel either. The diagram says *mill*, not *factory*.
+3. *in the farm*: a farm takes a different preposition.
+4. *During the period*: it refers to the four weeks just mentioned; use a clearer determiner.
+
+Estimated band: about 6.0–6.5. Accuracy is now almost fine; fix new point 1 and old points 9, 10 and 14, then the articles, to hold 6.5.
+
+
+#### Draft 3 (2026-09-29, about 185 words)
+
+> The process of producing dry-roasted coffee is illustrated in the diagram.
+>
+> Overall, it is a linear process consisting of twelve steps, which can be grouped into three main stages. It begins with the sorting of coffee beans in the farm, then production in the factory, and ends with the selling of product.
+>
+> First of all, the coffee beans are filtered and cleaned by hand for roughly choosing the good ones. After that, the beans are dried in sun for four weeks. During this period, they are raked and turned to make sure they are completely dried. Once this step is completed, the dried beans are stored in silo temporary.
+>
+> Following this, the beans are transported to mill, then the outer skin is removed. Subsequently, the beans are graded by quality and packed into bags for selling. Afterwards, the beans are roasted at a high temperature in the factory. Finally, the roasted beans are packed into airtight packages and sold to retailers.
+
+**Fixed in this draft**
+- ✓ Subject–verb agreement (Draft 2, 1), *During this period* (Draft 2, 4), grading by quality (Draft 1, 13), *a different price* removed (part of Draft 1, 7)
+
+**Still to fix (three drafts running, so the hints are more specific)**
+1. *for roughly choosing* / *for selling* (Draft 1, 9 and 14): purpose takes *to* + verb (like 1.13's *is washed to remove insects*); is sorting about choosing the good beans or removing the bad ones? *for selling* can simply go.
+2. *temporary* (Draft 1, 10): add two letters to make the adverb.
+3. Articles (Draft 1, 8): *in sun* (there is only one sun), *in silo*, *to mill* (first mention).
+4. *in the farm*: a farm takes the same preposition as an island.
+5. *the selling of product* (Draft 1, 2): the noun for selling has four letters; *product* needs an article, and say it is the packaged coffee.
+6. *then the outer skin is removed* (Draft 1, 12): two full clauses cannot be joined by a comma alone; add *and*, or bring in the hulling with *where*.
+7. *filtered* (Draft 1, 6): change it to *sorted*, which matches step 1 (by hand) and step 2 (sieving).
+8. *airtight* (Draft 1, 7): not in the diagram, so delete it.
+9. Overview, second sentence (Draft 2, 2): the middle part *then production in the factory* has no verb; the other two parts are verb + *with*, so the middle needs a verb too (e.g. "moves to"); change *factory* to *mill* as in the diagram.
+
+Estimated band: about 6.5. For Draft 4, check it yourself against the section 0 checklist first, then compare with this review.
+
+
+#### Draft 4 (2026-09-29, about 185 words)
+
+> The process of producing dry-roasted coffee is illustrated in the diagram.
+>
+> Overall, it is a linear process consisting of twelve steps, which can be grouped into three main stages. It begins with the sorting of coffee beans in the farm, then production in the factory, and ends with the selling of product.
+>
+> First of all, the coffee beans are filtered and cleaned by farmers for roughly choosing the good ones. After that, the beans are dried in sun for four weeks. During this period, they are raked and turned to make sure they are completely dried. Once this step is completed, the dried beans are stored in silo temporary.
+>
+> Following this, the beans are transported to mill, where the outer skin is removed. Subsequently, the beans are graded by quality and packed into bags for selling. Afterwards, the beans are roasted at a high temperature in the factory. Finally, the roasted beans are packed into airtight packages and sold to retailers.
+
+**Compared with Draft 3**
+- ✓ Fixed: 6 (*where* introduces the hulling)
+- ↩ Went back: *by hand* became *by farmers* again (it was fixed in Draft 2)
+- ✗ Same as Draft 3: 1 (*for* + V-ing), 2 (*temporary*), 3 (articles), 4 (*in the farm*), 5 (*the selling of product*), 7 (*filtered*), 8 (*airtight*), 9 (overview: no verb in the middle part)
+
+### 1.13 Textbook Sample 2 (fruit jam): paragraph breakdown
+
+The high-scoring model in textbook Ch.10 (a process diagram: making fruit jam, 9 steps, about 163 words). See the textbook for the original text; this section only breaks down how it is written.
+
+| Paragraph | Point | Moves |
+|---|---|---|
+| Intro + Overview (one paragraph) | Intro | Paraphrase the question: the diagram shows the procedure for making jam (*procedure* replaces *process*) |
+| | Overview | **Overall, it is clear that** + how many steps → **beginning with … and ending with …** (start and finish) → **namely** (names the two main phases: preparation and cooking) |
+| Body 1: preparation | 1. Selecting | **The first stage of the process is** + V-ing: choosing ripe fruit |
+| | 2. Washing | **At the next stage** (Middle): passive *is washed* + **to remove** (purpose): insects and dirt |
+| | 3. Peeling and coring | **Then** (Middle): passive *are removed* + **, leaving …** (result): only the flesh remains |
+| | 4. Pulping and adding | **Subsequently** (Middle): passive *is pulped* + **and then** the next action: sugar, citric acid and pectin are added |
+| Body 2: cooking | 5. Heating | **During the cooking stage** (Introducing): passive *is heated* **and then** *cooked*, with the time (about 15 minutes) |
+| | 6. Pouring and sealing | **After the mixture has cooled** (present perfect: the previous step is finished) → passive *is poured* + **, which are then sealed** (relative clause for the next step) + **to preserve** (purpose) |
+| | 7. Storing | **can then be stored** (modal + passive): the last step |
+
+Why it scores highly:
+- One overview sentence answers three of the four questions in 1.11: how many steps, where it starts and where it ends; *namely* then groups the 9 steps into 2 phases.
+- Body 1 = the first phase and Body 2 = the second, so the paragraphs match the phases named in the overview exactly.
+- Almost every sentence is passive: the subject stays on the fruit and the jam, not the people.
+- No sequencing word repeats: The first stage → At the next stage → Then → Subsequently → During → After.
+- Two steps are joined in one sentence instead of one step per sentence: *and then*, *, leaving …*, *, which are then …*.
+
+Five structures worth copying:
+- Purpose: passive + **to + verb** (*is washed to remove …*, *are sealed to preserve …*)
+- Result: **, leaving …** (a participle clause for what remains)
+- Previous step finished: **After + subject + has + past participle**, …
+- Next step: **, which are then + past participle**
+- Last step: **can then be + past participle**
+
+Difference from 1.11: this answer merges the intro and overview into one paragraph, so it has 3 paragraphs. Both work; 4 paragraphs is clearer, and merging saves words.
+
+### 1.14 Textbook sample: instant coffee: paragraph breakdown
+
+A high-scoring model from the textbook (a flowchart: how instant coffee is made, 12 steps). See the textbook for the original text; this section only breaks down how it is written.
+
+The textbook's tips (paraphrased):
+- 12 steps is a lot, so write efficiently to cover them all: put two steps in one sentence.
+- Mix active and passive structures rather than using one pattern every time.
+- Always include an overview that summarises the main stages.
+
+| Paragraph | Point | Moves |
+|---|---|---|
+| Intro + Overview (one paragraph) | Intro | Paraphrase the question: the flowchart shows the method for making instant coffee (*method* replaces *process*) + **from … to …** (start to finish) |
+| | Overview | **In general, it is clear from the diagram that** + 12 steps → **can be divided into three main phases** (names them: preparation, processing, packaging and distribution) |
+| Body | 1. Picking and drying | **The first stage in the process is** + V-ing **and then** V-ing (active gerunds, two steps in one sentence) |
+| | 2. Roasting and cooling | **At the next stage** (Middle): passive *are roasted* **and then** *cooled* |
+| | 3. Grinding and mixing | **Subsequently** (Middle): passive *are ground into a powder* **and then** *mixed with water* |
+| | 4. Straining | passive *is strained* + **to separate … from …** (purpose) |
+| | 5. Freeze-drying | **Then** (Middle): passive *is freeze-dried* + **, locking …** (result) |
+| | 6. Grinding again | **After that** (Middle): passive *is ground for a second time* |
+| | 7. Vacuum-drying and packing | **After it has been ground again** (present perfect passive: the previous step is finished) → passive *is dried* **and then** *packed* + **ready to be …** (the final delivery and sale) |
+
+Why it scores highly:
+- All 12 steps are covered in only 7 sentences: almost every sentence carries two steps with *and then*.
+- The first sentence is active (*picking … drying*), and the rest switch to passive — the mix the tips ask for.
+- No sequencing word repeats: The first stage → At the next stage → Subsequently → Then → After that → After.
+- The overview uses *from … to …* and *three main phases* to group 12 steps into 3.
+
+What could be better: the overview names three phases, but the body is a single paragraph. Following the 4-paragraph structure in 1.11, split the body into two (e.g. preparation + processing, then packaging and distribution) so the paragraphs match the overview.
+
+Structures shared with the fruit-jam sample in 1.13: **to + verb** (purpose), **, V-ing …** (result), **After + has (been) + past participle** (previous step finished). These three are the most useful higher-level patterns for process diagrams.
+
+---
+
+## 2. Task 2 (40 minutes, ≥ 250 words)
+
+### 2.1 Structure and word counts (from my notebook)
+
+| Paragraph | Sentences | Words |
+|---|---|---|
+| Introduction | 3 | ~30 |
+| One aspect | 8–9 | 80–90 |
+| Another aspect | 8–9 | 80–90 |
+| Conclusion | 6–8 | 60–80 |
+
+Total 250–280. (A conclusion of 2–3 sentences / 40–60 words is also enough; when short of time, protect the body paragraphs first.)
+Timing: 5 minutes analysing the question and listing points → 30 minutes writing → 5 minutes checking.
+
+**Inside "One aspect" (a body paragraph): 3–4 points**
+
+| Part | Content | Sentences | Words |
+|---|---|---|---|
+| Point 1 | Introduced by an introducing phrase (In terms of the positive aspects, …), which also works as the topic sentence + at least one support (explanation / consequence / reason / example) | ≥ 2 | 20–40 |
+| Point 2 | Introduced by an adding word (Moreover, …) + at least one support | ≥ 2 | 20–40 |
+| Point 3 | Introduced by an adding word (Furthermore, … / In addition to this, …) + at least one support | ≥ 2 | 20–40 |
+| Point 4 (optional) | Introduced by an adding word (Another advantage is that… / More worryingly, …) + at least one support | ≥ 2 | 20–40 |
+
+- Matching the word count: for an 80–90-word paragraph, three points means about 27–30 words each and four points about 20–22 words each; at most one point can run to 40. If a paragraph goes past 90, balance it against the other paragraph and the conclusion so the total stays at 250–280.
+- One claim per point; the support must add a layer (why, what follows, for example what), not just restate the point.
+- Put the strongest or most serious point last (More worryingly, …).
+- Example: in 2.12, the textbook Sample 2's advantages and disadvantages paragraphs each have 4 groups, and every group is point + support.
+
+Skeleton (using the patterns in 2.4):
+> In terms of the positive aspects, [topic] can [benefit 1]. In other words, / This is because … . (point 1: point + explanation or reason)
+> Moreover, [benefit 2]. As a result, … . (point 2: point + consequence)
+> Furthermore, / In addition to this, [benefit 3], which can … . For example, … . (point 3: point + consequence + example)
+> Another advantage is that [benefit 4]. This is because … . (point 4, optional: point + reason; in a disadvantages paragraph, use More worryingly for the most serious point)
+
+Paragraph skeletons and type-specific patterns for each essay type are in 2.5.
+
+### 2.2 Techniques (textbook commentary + pitfalls from two essays)
+
+1. Answer every part of the question; state your own view explicitly in the conclusion.
+2. Every point must be supported, developed and extended: reason → example → consequence → explanation. One point written in depth beats three points with one sentence each.
+3. Don't write every idea you have; pick the best 2–3.
+4. Don't just list: use linking words and signposting to join sentences (see 2.4).
+5. Paraphrase the question's words with synonyms; never copy whole sentences (see 2.3).
+6. Be specific: *do more valuable things* → *enjoy more leisure time with their families and friends*; *enjoy life* → add "doing what, with whom".
+7. The intro's preview must match the body: if the intro says *quality of life*, the body covers physical and mental health and leisure.
+8. Keep the position consistent: the concession paragraph after *largely agree* must not overturn it.
+9. Concrete countries or data make examples stronger: *Several countries, including Iceland, have trialled…*
+10. Don't say "improve health" twice in one paragraph: put the broad concept in the topic sentence (well-being / quality of life) and get specific at the end (physical and mental health).
+
+### 2.3 Synonyms (to avoid repeating the question's words)
+
+| Question word | Alternatives |
+|---|---|
+| advantages | benefits, positive aspects, merits, upsides, arguments in favour of; pros (colloquial — at most once) |
+| disadvantages | drawbacks, downsides, negative aspects, arguments against; cons (colloquial — at most once) |
+| outweigh | the benefits far outweigh the drawbacks / the drawbacks are outweighed by the benefits / on balance, the advantages are greater than the disadvantages |
+| people | individuals, workers, employees, the public, citizens |
+| important | essential, crucial, vital, of greater importance |
+| improve | enhance, boost (morale / happiness), raise (standards) |
+| big / many | significant, considerable, substantial, a large number of |
+| company | business, employer, firm, organisation |
+| the working week | working hours, work schedules, a four-day week |
+| think | believe, argue, maintain, hold the view that |
+
+### 2.4 Common patterns and linking words (all Task 2 types)
+
+**Intro (3 sentences: background → paraphrase the question → what the essay will do / position)**
+
+Background:
+  * Nowadays, it is often argued that…
+  * In recent years, many people have argued that…
+  * It is widely believed that…
+  * X has become a controversial issue in recent years.
+
+Others' view (paraphrasing the question):
+  * They believe that…
+  * Supporters of this view claim that…
+
+What the essay will do:
+  * This essay will discuss…
+  * In this essay, I will…
+
+**Body topic sentences**
+
+Introducing / categorising:
+  * In terms of…,
+    * In terms of the positive aspects, …
+  * As for…,
+    * As for the benefits of [topic], …
+    * As for the drawbacks of [topic], …
+  * Turning to…,
+  * With regard to…,
+
+First point:
+  * One major advantage / benefit / drawback of [topic] is that…
+    * One major benefit of [topic] is that it improves… / it can improve… / it would improve…
+      Three strengths: *improves* = an established fact (strong); *can improve* = possible / potential (hedged — the most common); *would improve* = a hypothetical policy (proposed, not yet in place). IELTS rewards appropriate hedging, so *can / may / could* are usually safer.
+
+Adding a second point:
+  * Moreover, …
+  * Furthermore, …
+  * In addition to this, …
+  * Another benefit is that…
+  * A further problem is that…
+
+**Support (reason → example → consequence → explanation)**
+
+Reason:
+  * This is because…
+  * This is due to the fact that…
+  * The reason for this is that…
+
+Example:
+  * For example, [a specific country / figure / situation]…
+  * For instance, …
+  * A case in point is…
+  * such as… / including…
+
+Consequence:
+  * As a result, …
+  * Consequently, …
+  * Therefore, …
+  * This means that…
+  * …, which could / can…
+
+Explanation:
+  * In other words, …
+  * …, which means…
+
+**Contrast and concession**
+
+  * However, …
+  * Nevertheless, …
+  * In contrast, …
+  * On the other hand, …
+  * More worryingly, …
+  * Although…, …
+  * While it is true that…, …
+  * …, while…
+  * …, which may not be suitable for every…
+
+**Conclusion (restate the position → one reason → optional condition or recommendation; no new arguments)**
+
+Openers:
+  * In conclusion,
+  * To conclude,
+  * To sum up,
+  * In summary,
+  * Overall,
+  * On balance, (good for *outweigh* questions)
+  * Taking everything into account,
+
+Position:
+  * I believe that…
+  * I am convinced that…
+  * I would argue that…
+  * In my view, …
+  * It seems to me that…
+  * I remain convinced that… (implies a concession came before and the position has not changed)
+
+  Reword the position sentence from the intro: intro *I largely agree with this view*, conclusion *I remain convinced that / I would argue that*. Don't double up (*In my opinion, I think…* says "I think" twice).
+
+Reason:
+  * This is because…
+  * For these reasons, …
+
+Condition or recommendation:
+  * Nevertheless, [governments / employers] should recognise that…
+
+**Full examples (position → reason → condition or recommendation; in the same A/B order as 2.5)**
+
+A. Advantages / disadvantages — the benefits outweigh:
+   To sum up, although there are strong arguments both for and against [topic], I would argue that the benefits outweigh the drawbacks. This is because it offers a practical alternative to [the current situation], while its downsides, such as [drawback], can be managed through strict regulation.
+
+B-1. To what extent — agree:
+   In conclusion, I remain convinced that the working week should be shortened where possible, since this would improve work-life balance and could even raise productivity. Nevertheless, governments and employers should recognise that different professions require different working hours.
+
+B-2. To what extent — partly agree:
+   On balance, I partly agree with this view: [X] clearly brings [benefit], but it should not be applied to every [sector]. For these reasons, a flexible approach that takes local conditions into account would be more effective than a single rule.
+
+B-3. To what extent — disagree:
+   In conclusion, it seems to me that the disadvantages of [X] far outweigh its benefits, mainly because [reason]. Unless [condition], I believe this policy should not be introduced.
+
+### 2.5 Type-specific patterns
+
+**A. Advantages / disadvantages (textbook Ch.19)**
+
+How the question is phrased: What are the advantages and disadvantages of…? / Do the advantages outweigh the disadvantages?
+
+Skeleton: Intro (say both sides will be discussed and preview the conclusion) → advantages paragraph → disadvantages paragraph → conclusion (state which side matters more, with one reason)
+
+Notes:
+- Cover both sides, one paragraph each; never only one side.
+- If the question asks *outweigh*, state the winning side in both the intro and the conclusion.
+- Rotate the words for the two sides: advantages / benefits / positive aspects / merits; disadvantages / drawbacks / downsides / negative aspects.
+
+Patterns:
+- Intro:
+  * In this essay, the advantages and disadvantages of [topic] will be discussed, and I will conclude by saying that the benefits outweigh the drawbacks.
+  * In this essay, the advantages and disadvantages of [topic] will be discussed, and I will conclude by saying that the benefits are more important than the drawbacks.
+  (*outweigh* questions need your position in the intro; for "What are the advantages and disadvantages?" questions, where you need not take a side, change *that* to *whether*)
+  * While [topic] brings several benefits, it also has some drawbacks; this essay will examine both before arguing that…
+- Advantages paragraph:
+  * In terms of the positive aspects, …
+  * As for the benefits of [topic], …
+  * One major advantage of [topic] is that…
+  * Another benefit is that…
+  * In addition to this, …
+- Disadvantages paragraph:
+  * As for the drawbacks of [topic], …
+  * Turning to the negative aspects, …
+  * Furthermore, …
+  * A further problem is that…
+  * More worryingly, …
+  * This can lead to…
+- Conclusion, first sentence (choose one; the first half says "both sides have a point", the second half says "which side wins", and the halves are interchangeable):
+  - In conclusion, although there are strong arguments both **for and against** [topic], I believe that the benefits outweigh the drawbacks. (most common; *for* comes first)
+  - In conclusion, although there are strong arguments both against and **in support of** [topic], I believe that the benefits are of more importance than the drawbacks.
+  - In conclusion, although there are strong arguments both **supporting and opposing** [topic], I would argue that the benefits outweigh the drawbacks.
+  - In conclusion, although there are strong arguments **on both sides of this debate**, I remain convinced that the benefits outweigh the drawbacks. (no need to repeat the question's words)
+  - The textbook's original *both against and in favour of [topic]* also works, but the order is slightly awkward.
+- Conclusion, second sentence (the reason):
+  * This is because it is essential to find a [practical] and viable alternative to …, and the drawbacks such as … can be dealt with through [strict government regulation].
+
+**B. To what extent do you agree or disagree (four-day working week)**
+
+How the question is phrased: To what extent do you agree or disagree? / Do you agree or disagree?
+
+Skeleton: Intro (background → paraphrase → position: *I largely agree, although…*) → support 1 → support 2 (with an example) → concession paragraph (the opposing view + why it does not overturn your position) → conclusion (restate the position + reason + a condition)
+
+Notes:
+- "To what extent" asks how far: completely / largely / partly — say it in the intro, repeat it in the conclusion, and never change it in between.
+- The concession paragraph is a bonus: show that you have seen the other side, then use *However / Nevertheless* to return to your position; keep it shorter than the support paragraphs.
+
+Patterns:
+- Position:
+  * I largely / completely agree with this view, although I believe…
+  * To a large extent, I agree that…
+  * While I accept that…, I believe…
+  * I partly agree: … but …
+  * I strongly disagree with this idea because…
+- Support paragraphs:
+  * One major advantage of [topic] is that it can improve…
+  * Another benefit is that [companies] could also gain from this change.
+  * Several countries, including Iceland, have trialled…
+  * When…, they are often more…, which can benefit [employers] as well.
+- Concession paragraph:
+  * However, [topic] may not be suitable for every profession.
+  * Admittedly, …
+  * It is true that…, but…
+  * Therefore, a flexible approach would be more realistic than applying the same rule to all [professions].
+- Conclusion:
+  * In conclusion, I believe [topic] should be … where possible because…
+  * In conclusion, while there are some drawbacks, I remain convinced that…
+  * Nevertheless, governments and employers should recognise that different … require different …
+
+(Other types — discuss both views, problem / solution — to be added once practised.)
+
+### 2.6 Topic vocabulary: work and life
+
+work-life balance · well-being · quality of life · burnout / exhaustion / stress · heavy workloads · long commuting hours · a lack of personal time · relax / recharge / unwind · pursue hobbies / interests · quality time with loved ones · physical and mental health · productivity / output · morale · motivated / engaged / focused / efficient · retain staff · operate around the clock / 24 hours a day, seven days a week · throughout the week · additional staff · work / time pressure · a flexible / tailored approach · a one-size-fits-all rule
+
+### 2.7 Common errors (my own)
+
+| Written | Should be | Rule |
+|---|---|---|
+| experience exhaust | experience exhaustion | verb + noun |
+| feeling more satisfy | feeling more satisfied | feel + adjective; -ed for how people feel |
+| less stressful (of a person) | less stressed | -ful describes things, -ed describes people (boring / bored) |
+| spend time to do | spend time doing | spend + time + V-ing |
+| pursue interest / fewer mistake / all profession | interests / mistakes / professions | generic, fewer, all → plural |
+| employee's salary | employee salaries / employees' salaries | noun + noun, or plural possessive |
+| the rest four countries | the other four / the remaining four | *rest* cannot be followed directly by a number (a literal translation of the Chinese 其餘四國) |
+| get benefits from / gain profits from | benefit / gain / profit from | one verb + from, no noun |
+| improve happiness | improve well-being / quality of life; boost happiness | collocation |
+| operate can not stop | operate around the clock | verb + adverbial phrase, not another verb |
+| through out | throughout | one word |
+| 7x24 | 24/7 (formal: around the clock) | order and format |
+| making it from A to B | which took it from A to B | making + object takes only a complement |
+| Whereas + a stand-alone sentence | merge into the previous sentence, or use In contrast, | subordinating conjunctions cannot start a sentence alone |
+| Spain rose to 20% | the rate in Spain rose to 20% | it is the figure that rises or falls |
+| fell slowly (0.5 points in one year) | fell slightly | size vs speed |
+| do more valuable things | enjoy more leisure time with their families and friends | too vague → specific |
+
+### 2.8 Model: four-day working week (To what extent do you agree, about 270 words)
+
+> In recent years, many people have argued that the traditional five-day working week is no longer suitable for modern society. They believe that reducing it to four days would improve people's health and allow people to do more valuable things. I largely agree with this view, although I believe some industries would not allow their employees to reduce their working hours.
+>
+> One major advantage of a shorter working week is that it can improve people's happiness. Many employees experience exhaustion, long commuting hours and a lack of personal time. Having an extra day off would allow workers to relax, pursue interests or spend quality time with loved ones, which could improve both physical and mental health. As a result, employees may return to work feeling more satisfied and efficient.
+>
+> Another benefit is that companies could also gain from this change. Several countries, including Iceland, have trialled shorter working weeks without reducing employee salaries, and many businesses reported that output remained stable while employee productivity increased. When workers are happier and less stressed, they are often more motivated and make fewer mistakes, which can benefit employers as well.
+>
+> However, a four-day working week may not be suitable for every profession. Hospitals, emergency services and public transport operate 24/7 and require staff throughout the week. In these sectors, reducing working hours without hiring additional workers could place greater time pressure on existing workers and increase costs. Therefore, a flexible approach would be more realistic than applying the same rule to all professions.
+>
+> In conclusion, I believe the working week should be reduced where possible because it would improve work-life balance and could even increase productivity. Nevertheless, governments and employers should recognize that different professions require different working hours.
+
+Estimated band 6.5–7. Three things that could raise it: consistent spelling (*trialled* is British, *recognize* American — change to *recognise*); *improve people's happiness* → *well-being / quality of life*; *do more valuable things* → say specifically with whom and doing what.
+
+### 2.9 Topic vocabulary and patterns: globalization (advantages / disadvantages)
+
+**Advantage verbs and collocations**
+enhance communication · promote cooperation / cultural understanding · encourage / drive innovation · strengthen economies · improve living standards · boost / stimulate economic growth · attract foreign investment · expand into overseas markets · reduce trade barriers · create employment opportunities · facilitate international communication · bridge geographical distances · access information instantly
+
+**Disadvantage verbs and collocations**
+widen the wealth gap · threaten local businesses · undermine cultural identity · increase pollution / income inequality · exploit cheap labour · lose traditional customs · disrupt supply chains · dominate the market · adopt Western lifestyles
+
+**Nouns**
+- Economy: global economy · international trade · multinational corporation (MNC) · foreign investment · free trade · tariffs · supply chain · outsourcing / offshoring · labour market · skilled workforce · competitiveness
+- Culture: cultural exchange / diversity · Western influence · local identity · cultural heritage · intercultural / cross-cultural communication
+- Technology: technological advancement · digital communication · collaboration · interconnected world
+- Society and environment: income inequality · environmental impact · carbon emissions · sustainable development · renewable energy · environmental regulations
+- Work and education: remote workforce · international recruitment · cross-border employment · career opportunities abroad · global competition · student exchange programmes · global citizenship
+
+**Easily confused**
+- abroad (in another country) vs aboard (on a ship / plane)
+- outsource (v.) / outsourcing (n.); offshore (adj./v.) / offshoring (n.)
+- facilitate = make something easier (passive — removing obstacles); stimulate = encourage, spur (active)
+- undermine = weaken; exploit = use unfairly; widen = make (a gap) bigger
+- economy / economic / economical:
+  * economy (n.) = the system of money, trade and industry: the global economy, a strong economy (also "saving": economy class)
+  * economic (adj.) = relating to the economy: economic growth, economic development, economic crisis, economic policy
+  * economical (adj.) = saving money or resources: an economical car, an economical way to produce goods
+  * Same family: economics (n.) the subject; economist (n.) the expert; economise (v.) to save
+  * Common errors: economical growth ✗ → economic growth; economic car ✗ → economical car
+
+**Paragraph openers**
+- Intro: Globalization has become one of the defining features of the modern world. / In today's interconnected world, countries are more closely linked than ever before.
+- Advantages paragraph: One major benefit is that… / Another significant advantage is… / This enables people to…
+- Disadvantages paragraph: However, this trend also brings several challenges. / Despite these benefits, some drawbacks cannot be ignored. / One concern is that…
+- Conclusion: Overall, globalization presents both opportunities and challenges. / Striking a balance between economic development and cultural preservation is essential.
+
+### 2.10 Planning example: globalization (Do the pros outweigh the cons?)
+
+Teacher's skeleton: Intro (introduce the topic + position: more benefits) → Pros ×3 → Cons ×2–3 → Conclusion (summarise the main points).
+
+What a 5-minute plan looks like (the student's notes from the handout — bullet points, not sentences):
+- Intro: technological and telecommunication developments → the world is becoming smaller = globalization → pros and cons → my position: advantages far outweigh disadvantages
+- Pros: (1) developed countries outsource production to poorer countries at lower cost (e.g. car makers outsourcing parts) → cheaper goods for consumers + more jobs in poorer countries; (2) people from developing countries work and study in developed nations → lower unemployment; (3) diseases and humanitarian crises are solved faster through international cooperation
+- Cons: (1) outsourcing benefits poorer countries, but their natural resources may be used up cheaply; (2) big corporations exploit cheap labour and ignore workers' rights; brain drain → the home country lacks experienced workers
+- Conclusion: benefits and drawbacks for both developed and developing nations → the advantages are greater
+
+Note: 3 pros + 2–3 cons in 250 words leaves only one or two sentences per point, so the development is too thin. For a 6.5–7 target, 2 pros + 2 cons, each developed as reason → example → consequence, is safer (see 2.2, points 2 and 3).
+
+### 2.11 Model: globalization (Do the pros outweigh the cons?, about 290 words)
+
+Following the plan in 2.10, reduced to 2 advantages + 2 disadvantages, each with reason → example → consequence.
+
+> In today's interconnected world, advances in technology and telecommunications have made countries more closely linked than ever before, a process known as globalization. While this trend brings certain drawbacks, I believe that its benefits far outweigh its negative aspects.
+>
+> One major benefit of globalization is that it can stimulate economic growth in both developed and developing nations. Many multinational corporations outsource production to countries where labour costs are lower; for example, Japanese car manufacturers produce parts in several other Asian countries. As a result, consumers can purchase goods at lower prices, while workers in less wealthy countries gain employment opportunities that did not previously exist. Furthermore, closer international cooperation enables governments to respond more effectively to global crises. During disease outbreaks, for instance, countries can share medical research and supplies, which helps to reduce suffering far more quickly than any nation could achieve alone.
+>
+> However, globalization also brings several challenges. One concern is that large corporations may exploit cheap labour, paying low wages and ignoring workers' rights in order to cut costs. In addition, poorer countries may sell their natural resources at very low prices, and their most qualified workers often move abroad in search of higher salaries. This brain drain can leave the original countries without the skilled workforce they need in order to develop.
+>
+> In conclusion, although there are strong arguments both for and against globalization, I remain convinced that the benefits outweigh the drawbacks. This is because it creates jobs, lowers prices and strengthens international cooperation, while problems such as labour exploitation can be dealt with through stricter international regulations.
+
+Patterns used: In today's interconnected world (2.9 openers) · One major benefit of [topic] is that it can… (2.4 first point) · Furthermore / In addition (adding) · for example / for instance (examples) · As a result (consequence) · However, … also brings several challenges / One concern is that… (disadvantages paragraph) · both for and against / I remain convinced that… (2.4 conclusion).
+
+### 2.12 Textbook Sample 2 (nuclear power): paragraph breakdown
+
+The high-scoring model essay in textbook Ch.19 (question: advantages and disadvantages of using nuclear power instead of fossil fuels). See the textbook for the original text; this section only breaks down how it is written.
+
+| Paragraph | Point | Moves |
+|---|---|---|
+| Intro (3 sentences) | Background | It is often argued that nuclear power should replace carbon-emitting fossil fuels |
+| | What the essay will do | **In this essay**: discuss both sides |
+| | Preview of the conclusion | Say whether the benefits or the drawbacks matter more |
+| Advantages | 1. Cheap to run | **In terms of** (Introducing) → cheap to run once built → **In other words** (Explanation): the fuel is cheap |
+| | 2. Fuel will not run out | **Moreover** (Adding): the fuel will not run out → **As a result** (Consequence): no power shortages from dwindling supply |
+| | 3. Local jobs | **In addition to this** (Adding): creates local jobs → **, which can** (Consequence): boost the local economy |
+| | 4. Safety | **Another advantage** (Adding): nuclear stations are quite safe → **due to the fact that** (Reason): safety features reduce human error |
+| Disadvantages | 1. Dangerous accidents | **As for** (Introducing) → extremely dangerous in an accident → **For example** (Example): Fukushima, Japan |
+| | 2. Radioactive waste | **… can also** (Adding): the waste harms the environment for centuries → **Consequently** (Consequence): the clean-up is costly |
+| | 3. Water pollution | **Furthermore** (Adding): pollutes the local water supply → **This is because** (Reason): cooling water is released into the sea |
+| | 4. Terrorism | **More worryingly** (Adding — the most serious point last): a possible terrorist target → **Therefore** (Consequence): extra security is needed |
+| Conclusion (2 sentences) | Position | **In conclusion** (Openers): strong arguments on both sides → the benefits matter more |
+| | Reason | **This is because** (Reason): a clean, viable alternative is essential, and the drawbacks can be handled through strict government regulation |
+
+Why it scores highly (the textbook's commentary, paraphrased):
+- It answers every part of the question and states a clear view in the conclusion.
+- It does not cram in every idea; it chooses the best points and develops each with reasons, examples, consequences and explanation.
+- It does not list: each new point is introduced by a linking word, one per function, without repetition.
+- It replaces the question's *advantages / disadvantages* with *benefits / drawbacks*, *positive aspects*, *arguments for and against*.
+
+Two structures worth copying:
+- Each point goes claim → linker → extension, and the linker must fit its function: *In other words* is Explanation (saying it another way); *As a result* and *, which can* are Consequence (what it leads to). E.g. "cheap to run → *In other words* (Explanation) → cheap fuel", "fuel will not run out → *As a result* (Consequence) → no shortages", "creates jobs → *, which can* (Consequence) → boost the economy".
+- The disadvantages paragraph saves the most serious point for last with *More worryingly*, which lands harder than a plain *Finally*.
+
+---
+
+## 3. UK / US spelling
+
+| UK | US |
+|---|---|
+| colour, flavour, labour, humour, harbour, neighbour, favourite | color, flavor, labor, humor, harbor, neighbor, favorite |
+| organise, realise, recognise | organize, realize, recognize |
+| centre, metre | center, meter |
+| travelled, cancelled | traveled, canceled |
+| programme | program |
+| analyse | analyze |
+| defence | defense |
+
+IELTS accepts both; what matters is consistency throughout. Once you have used *trialled* and *labour*, *recognize* must not appear.
+
+### 3.1 Commonly misspelled words
+
+| Word | Key part | Watch out |
+|---|---|---|
+| government | gover**n**ment | govern + ment — keep the n |
+| environment | envir**on**ment | environ + ment — keep the n |
+| corporation | corp**o**ration | an o after corp, not an a; a different word from cooperation |
+| co-operate | co-op**e**rate | an e after op, not an a; cooperate is also correct (noun co-operation / cooperation) — keep one form throughout |
+| opportunity | opp**o**rtunity | double p, then an o |
+| against | a**gain**st | there is a *gain* inside |
+| fluctuate | fluct**u**ate | a u after the t; the same in the noun fluctuation |
+| threaten | thr**ea**ten | threat + en — keep the ea |
+| temperature | temper**a**ture | there is an a after temper; four syllables |
+| modern | mod**er**n | only one r, after the e |
+| valuable | val**u**able | drop the e of value, then add able |
+| argument | arg**u**ment | drop the e of argue, then add ment (the same rule as valuable) |
+| advantage | ad**van**tage | van in the middle, not ven |
+| several | sev**er**al | three syllables |
+| flexible | flex**ible** | ends in -ible |
+| pressure | pre**ss**ure | double s |
+| therefore | **therefore** | one word |
+| throughout | **throughout** | one word |
+| beginning | begin**n**ing | double the n when adding -ing to begin |
+
+modern, valuable, advantage, several, flexible, pressure, therefore, throughout and beginning are my own misspellings from past drafts — check them first when going through point 7 of the checklist in section 0.
+
+### 3.2 Easily confused words
+
+| Word | Part of speech | Meaning | Example |
+|---|---|---|---|
+| phrase | n. / v. | a group of words; to word something in a certain way | a useful phrase / phrase the question politely |
+| rephrase | v. | to say something again in different words (usually your own, to make it clearer) | Could you rephrase that? |
+| paraphrase | v. / n. | to restate someone else's text in your own words, keeping the meaning | Paraphrase the question in the introduction. |
+| paragraph | n. | a section of writing (similar spelling, unrelated meaning) | the overview paragraph |
+
+The easiest pair to mix up is rephrase and paraphrase: in an intro you reword the question, which is someone else's text, so it is *paraphrase the question*.
+</script>
+<script>
+(function(){
+  var $ = function(s){ return document.querySelector(s); };
+  var store = {
+    get: function(k, d){ try { var v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
+    set: function(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+  };
+  var T = {
+    zh: { title:'IELTS Writing 筆記', toc:'目錄', search:'搜尋句型、規則、單字', expand:'全部展開', collapse:'全部收合', copied:'已複製', copyAll:'複製全文', copy:'複製',
+          results:function(n){ return '找到 ' + n + ' 個段落'; }, none:'沒有符合的段落，換個關鍵字試試', ticked:function(a,b){ return '已勾選 <b>' + a + '</b> / ' + b; }, clear:'清除勾選', ttab:{intro:'Intro', adv:'優點段', dis:'缺點段', position:'立場', support:'支持段', concession:'讓步段', conclusion:'結論'}, subAll:'全部', tabs:{all:'全部', intro:'Intro', body:'Body', contrast:'對比讓步', conclusion:'Conclusion'}, close:'關閉', menu:'目錄', clearSearch:'清除搜尋', lang:'語言' },
+    en: { title:'IELTS Writing Notes', toc:'Contents', search:'Search patterns, rules, words', expand:'Expand all', collapse:'Collapse all', copied:'Copied', copyAll:'Copy essay', copy:'Copy',
+          results:function(n){ return n + ' section' + (n===1?'':'s') + ' match'; }, none:'No sections match — try another keyword', ticked:function(a,b){ return '<b>' + a + '</b> / ' + b + ' ticked'; }, clear:'Clear ticks', ttab:{intro:'Intro', adv:'Advantages', dis:'Disadvantages', position:'Position', support:'Support', concession:'Concession', conclusion:'Conclusion'}, subAll:'All', tabs:{all:'All', intro:'Intro', body:'Body', contrast:'Contrast', conclusion:'Conclusion'}, close:'Close', menu:'Contents', clearSearch:'Clear search', lang:'Language' }
+  };
+  var lang = store.get('ielts.lang.v2', 'en'); if (lang !== 'zh') lang = 'en';
+  var checks = store.get('ielts.checks', {}) || {};
+  var collapsed = {}; (store.get('ielts.collapsed', []) || []).forEach(function(i){ collapsed[i] = true; });
+  var tocShut = store.get('ielts.tocShut', {}) || {};
+  var ptab = store.get('ielts.ptab', 'all');
+  var psubSel = store.get('ielts.psub', {}) || {};
+  var ttSel = store.get('ielts.ttab', {}) || {};
+  var tocHidden = !!store.get('ielts.tocHidden', false);
+  var main = $('#content'), tocList = $('#toc-list'), search = $('#search'), searchWrap = $('#search-wrap');
+  var units = []; // searchable units: {idx, el, body, html, title, collapsible}
+  var ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="9" height="9" rx="1.5"/><path d="M13 7V5.5A1.5 1.5 0 0 0 11.5 4h-6A1.5 1.5 0 0 0 4 5.5v6A1.5 1.5 0 0 0 5.5 13H7"/></svg>';
+
+  function esc(s){ return s.replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function ownText(li){
+    var c = li.cloneNode(true); Array.prototype.slice.call(c.querySelectorAll('ul,ol,button')).forEach(function(n){ n.remove(); });
+    var br = c.querySelector('br'); if (br){ while (br.nextSibling) br.nextSibling.remove(); br.remove(); }
+    return c.textContent.replace(/\s+/g,' ').trim();
+  }
+  function mdSource(){ return document.getElementById('md-' + lang).textContent; }
+  function setupMarked(){ if (window.marked && marked.use) { try { marked.use({ gfm: true, breaks: true }); } catch(e){} } }
+
+  function applyLabels(){
+    var t = T[lang];
+    document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en';
+    document.title = t.title;
+    $('#bar-title').textContent = t.title;
+    $('#toc-title').textContent = t.toc;
+    $('#expand-all').textContent = t.expand; $('#collapse-all').textContent = t.collapse;
+    search.placeholder = t.search; search.setAttribute('aria-label', t.search);
+    $('#search-clear').setAttribute('aria-label', t.clearSearch);
+    $('#menu-btn').setAttribute('aria-label', t.menu); $('#toc-close').setAttribute('aria-label', t.close);
+    $('#toc').setAttribute('aria-label', t.toc);
+    Array.prototype.forEach.call(document.querySelectorAll('.lang button'), function(b){ b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
+  }
+
+  function render(){
+    applyLabels();
+    var src = mdSource(), htmlOut;
+    try { htmlOut = window.marked ? marked.parse(src) : null; } catch(e){ htmlOut = null; }
+    main.innerHTML = ''; tocList.innerHTML = ''; units.length = 0;
+    if (!htmlOut){ main.innerHTML = '<pre style="white-space:pre-wrap">' + esc(src) + '</pre>'; return; }
+    var tmp = document.createElement('div'); tmp.innerHTML = htmlOut;
+    var frag = document.createDocumentFragment();
+    var intro = document.createElement('div'); intro.className = 'intro';
+    var results = document.createElement('div'); results.className = 'results'; results.id = 'results';
+    var cur = intro, part = null, partBody = null, tocPart = null, idx = 0, partIdx = 0;
+    frag.appendChild(results);
+    var tocSub = null, gIdx = 0, lastL2 = null, dIdx = 0;
+    Array.prototype.slice.call(tmp.childNodes).forEach(function(node){
+      if (node.nodeType === 8){
+        var gm = /^\s*toc-group:\s*(.+?)\s*$/.exec(node.nodeValue || '');
+        if (gm && tocPart){
+          var gh = document.createElement('div'); gh.className = 'group-h'; gh.textContent = gm[1]; (part || frag).appendChild(gh);
+          var gli = document.createElement('li'); gli.className = 'toc-group'; gli.dataset.p = 'g' + (gIdx++);
+          gli.innerHTML = '<div class="toc-row"><span class="toc-glabel">' + esc(gm[1]) + '</span><button class="toc-tog" type="button" aria-expanded="true"><span></span></button></div><ul></ul>';
+          tocPart.appendChild(gli); tocSub = gli.querySelector('ul');
+        }
+        return;
+      }
+      if (node.nodeType !== 1){ if (node.textContent.trim()) cur.appendChild(node); return; }
+      var tag = node.tagName;
+      if (tag === 'H1'){ node.className = 'doc-title'; frag.appendChild(node); frag.appendChild(intro); cur = intro; return; }
+      if (tag === 'HR') return;
+      if (tag === 'H2'){
+        part = document.createElement('div'); part.className = 'part'; node.id = 'h' + partIdx; part.appendChild(node);
+        partBody = document.createElement('div'); partBody.className = 'part-body'; partBody.id = 'pb' + partIdx; part.appendChild(partBody);
+        frag.appendChild(part); cur = partBody;
+        units.push({ idx: 'pb' + partIdx, el: partBody, body: partBody, title: node.textContent, collapsible: false, partEl: part });
+        var li = document.createElement('li'); li.className = 'toc-part'; li.dataset.p = partIdx;
+        li.innerHTML = '<div class="toc-row"><a href="#h' + partIdx + '">' + esc(node.textContent) + '</a><button class="toc-tog" type="button" aria-expanded="true"><span></span></button></div><ul></ul>';
+        tocList.appendChild(li); tocPart = li.querySelector('ul'); tocSub = null; lastL2 = null; partIdx++; return;
+      }
+      if (tag === 'H4' && lastL2){
+        node.id = 'd' + (dIdx++); cur.appendChild(node);
+        var dl = lastL2.querySelector('ul.toc-drafts'); if (!dl){ dl = document.createElement('ul'); dl.className = 'toc-drafts'; lastL2.appendChild(dl); }
+        var di = document.createElement('li'); di.innerHTML = '<a href="#' + node.id + '">' + esc(node.textContent) + '</a>'; dl.appendChild(di);
+        return;
+      }
+      if (tag === 'H3'){
+        var sec = document.createElement('section'); sec.className = 'sec'; sec.id = 's' + idx; sec.dataset.idx = idx;
+        var h = document.createElement('h3'); h.className = 'sec-h';
+        h.innerHTML = '<button class="tog" type="button" aria-expanded="true" aria-controls="b' + idx + '"><span class="tog-mark"></span><span>' + node.innerHTML + '</span></button>';
+        var body = document.createElement('div'); body.className = 'sec-body'; body.id = 'b' + idx;
+        sec.appendChild(h); sec.appendChild(body); (part || frag).appendChild(sec); cur = body;
+        units.push({ idx: idx, el: sec, body: body, title: node.textContent, collapsible: true, partEl: part });
+        lastL2 = null; if (tocPart){ var l2 = document.createElement('li'); l2.innerHTML = '<a href="#s' + idx + '">' + esc(node.textContent) + '</a>'; (tocSub || tocPart).appendChild(l2); lastL2 = l2; }
+        idx++; return;
+      }
+      cur.appendChild(node);
+    });
+    main.appendChild(frag);
+    // drop empty part bodies
+    units = units.filter(function(u){ if (!u.collapsible && !u.body.childNodes.length){ u.body.remove(); return false; } return true; });
+    postProcess();
+    units.forEach(function(u){ u.html = u.body.innerHTML; });
+    applyCollapsed(); applyChecks(); applySearch(); observeHeadings(); applyTocShut();
+  }
+
+  function isBold(el){ if (!el || el.nodeType !== 1 || el.tagName !== 'P') return false; var st = el.firstElementChild; return !!st && st.tagName === 'STRONG' && el.textContent.trim() === st.textContent.trim(); }
+  function isLabel(el){
+    if (!el || el.nodeType !== 1 || el.tagName !== 'P' || isBold(el)) return false;
+    var x = el.textContent.trim();
+    return /[:：]$/.test(x) && x.length <= 60 && !/^[A-Z](-\d)?\./.test(x);
+  }
+  function shortName(x){ return x.replace(/[:：]\s*$/, '').split(/[（(]/)[0].trim(); }
+  function splitSubs(g, t){
+    var kids = Array.prototype.slice.call(g.childNodes).filter(function(n){ return n.nodeType === 1 || n.textContent.trim(); });
+    var subs = [], cur = null, sticky = false;
+    for (var i = 0; i < kids.length; i++){
+      var k = kids[i], nx = kids[i + 1];
+      if (isBold(k)){
+        sticky = /^(Support|支撐)/i.test(k.textContent.trim());
+        if (isLabel(nx)){ k.classList.add(sticky ? 'pstick' : 'phead'); cur = null; continue; }
+        cur = { name: shortName(k.textContent.trim()), els: [k], sticky: sticky }; subs.push(cur); continue;
+      }
+      if (isLabel(k)){ cur = { name: shortName(k.textContent.trim()), els: [k], sticky: sticky }; subs.push(cur); continue; }
+      if (cur) cur.els.push(k);
+    }
+    subs.forEach(function(sb){ if (sb.sticky){ var w = document.createElement('div'); w.className = 'pstick'; sb.els[0].parentNode.insertBefore(w, sb.els[0]); sb.els.forEach(function(e){ w.appendChild(e); }); } });
+    subs = subs.filter(function(sb){ return !sb.sticky; });
+    if (subs.length < 2) return;
+    var bar = document.createElement('div'); bar.className = 'psubs'; bar.setAttribute('role', 'group');
+    var mk = function(key, label){ var b = document.createElement('button'); b.type = 'button'; b.dataset.sub = key; b.textContent = label; b.setAttribute('aria-pressed', 'false'); bar.appendChild(b); };
+    mk('all', t.subAll);
+    subs.forEach(function(sb, i){
+      var w = document.createElement('div'); w.className = 'psub'; w.dataset.s = String(i);
+      sb.els[0].parentNode.insertBefore(w, sb.els[0]); sb.els.forEach(function(e){ w.appendChild(e); });
+      mk(String(i), sb.name);
+    });
+    g.insertBefore(bar, g.firstChild);
+  }
+
+  function applyTabs(){
+    var searching = search.value.trim().length > 0;
+    Array.prototype.forEach.call(main.querySelectorAll('.ttabs'), function(bar){
+      bar.hidden = searching;
+      var sel = searching ? 'all' : (ttSel[bar.dataset.block] || 'all');
+      if (sel !== 'all' && !bar.querySelector('[data-tt="' + sel + '"]')) sel = 'all';
+      Array.prototype.forEach.call(bar.querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', String(b.dataset.tt === sel)); });
+      var ul = bar.nextElementSibling;
+      if (ul) Array.prototype.forEach.call(ul.querySelectorAll(':scope > li'), function(li){ li.hidden = sel !== 'all' && li.dataset.k !== sel; });
+    });
+    Array.prototype.forEach.call(main.querySelectorAll('.ptabs'), function(bar){
+      bar.hidden = searching;
+      Array.prototype.forEach.call(bar.querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', String(b.dataset.tab === ptab)); });
+      var body = bar.parentNode;
+      Array.prototype.forEach.call(body.querySelectorAll(':scope > .pgroup'), function(g){
+        g.hidden = !searching && ptab !== 'all' && g.dataset.g !== ptab;
+        var sb = g.querySelector(':scope > .psubs'); if (!sb) return;
+        var active = !searching && ptab === g.dataset.g;
+        var sel = active ? (psubSel[g.dataset.g] || 'all') : 'all';
+        if (sel !== 'all' && !sb.querySelector('[data-sub="' + sel + '"]')) sel = 'all';
+        sb.hidden = !active;
+        Array.prototype.forEach.call(sb.querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', String(b.dataset.sub === sel)); });
+        Array.prototype.forEach.call(g.querySelectorAll('.psub'), function(x){ x.hidden = sel !== 'all' && x.dataset.s !== sel; });
+        Array.prototype.forEach.call(g.querySelectorAll('.phead'), function(x){ x.hidden = sel !== 'all'; });
+      });
+    });
+  }
+
+  function applyTocShut(){
+    Array.prototype.forEach.call(tocList.querySelectorAll('.toc-part, .toc-group'), function(li){
+      var tg = li.querySelector(':scope > .toc-row > .toc-tog'), has = li.querySelector(':scope > ul').children.length > 0;
+      tg.hidden = !has;
+      var shut = has && !!tocShut[li.dataset.p];
+      li.classList.toggle('shut', shut);
+      tg.setAttribute('aria-expanded', String(!shut));
+      tg.setAttribute('aria-label', (shut ? (lang === 'zh' ? '展開 ' : 'Expand ') : (lang === 'zh' ? '收合 ' : 'Collapse ')) + li.querySelector(':scope > .toc-row').textContent.trim());
+    });
+  }
+
+  function postProcess(){
+    var t = T[lang];
+    // 2.4: split into selectable groups
+    units.forEach(function(u){
+      if (!u.collapsible || !/^2\.4\b/.test(u.title.trim())) return;
+      var kids = Array.prototype.slice.call(u.body.childNodes), groups = [], curG = null;
+      var keyOf = function(el){
+        if (!el || el.nodeType !== 1 || el.tagName !== 'P') return null;
+        var st = el.firstElementChild; if (!st || st.tagName !== 'STRONG' || el.textContent.trim() !== st.textContent.trim()) return null;
+        var x = st.textContent.trim();
+        if (/^Intro/i.test(x)) return 'intro';
+        if (/^(Body|Support|支撐)/i.test(x)) return 'body';
+        if (/^(Contrast|對比)/i.test(x)) return 'contrast';
+        if (/^(Conclusion|Full examples|完整範例)/i.test(x)) return 'conclusion';
+        return null;
+      };
+      var lead = document.createDocumentFragment();
+      kids.forEach(function(k){
+        var key = keyOf(k);
+        if (key && !(curG && curG.dataset.g === key)){ curG = document.createElement('div'); curG.className = 'pgroup'; curG.dataset.g = key; groups.push(curG); }
+        if (curG) curG.appendChild(k); else lead.appendChild(k);
+      });
+      if (!groups.length) return;
+      u.body.innerHTML = '';
+      var bar = document.createElement('div'); bar.className = 'ptabs'; bar.setAttribute('role', 'group');
+      ['all','intro','body','contrast','conclusion'].forEach(function(k){
+        var b = document.createElement('button'); b.type = 'button'; b.dataset.tab = k; b.textContent = t.tabs[k]; b.setAttribute('aria-pressed', 'false'); bar.appendChild(b);
+      });
+      u.body.appendChild(lead); u.body.appendChild(bar);
+      groups.forEach(function(g){ u.body.appendChild(g); splitSubs(g, t); });
+    });
+    // 2.5: filter each type's pattern list
+    units.forEach(function(u){
+      if (!u.collapsible || !/^2\.5\b/.test(u.title.trim())) return;
+      var block = 0;
+      Array.prototype.forEach.call(u.body.querySelectorAll(':scope > ul'), function(ul){
+        var prev = ul.previousElementSibling;
+        if (!prev || prev.tagName !== 'P' || !/^(句型|Patterns)[:：]$/.test(prev.textContent.trim())) return;
+        var keys = [];
+        Array.prototype.forEach.call(ul.querySelectorAll(':scope > li'), function(li){
+          var lab = (li.firstChild && li.firstChild.textContent || '').trim();
+          var k = /^Intro/i.test(lab) ? 'intro' : /^(優點段|Advantages)/i.test(lab) ? 'adv' : /^(缺點段|Disadvantages)/i.test(lab) ? 'dis'
+                : /^(立場|Position)/i.test(lab) ? 'position' : /^(支持段|Support)/i.test(lab) ? 'support' : /^(讓步段|Concession)/i.test(lab) ? 'concession'
+                : /^(結論|Conclusion)/i.test(lab) ? 'conclusion' : null;
+          if (!k) return; li.dataset.k = k; if (keys.indexOf(k) < 0) keys.push(k);
+        });
+        if (keys.length < 2) return;
+        var bar = document.createElement('div'); bar.className = 'ttabs'; bar.dataset.block = 'b' + block; bar.setAttribute('role', 'group');
+        ['all'].concat(keys).forEach(function(k){
+          var b = document.createElement('button'); b.type = 'button'; b.dataset.tt = k; b.textContent = k === 'all' ? t.tabs.all : t.ttab[k]; b.setAttribute('aria-pressed', 'false'); bar.appendChild(b);
+        });
+        ul.parentNode.insertBefore(bar, ul); block++;
+      });
+    });
+    Array.prototype.forEach.call(main.querySelectorAll('table'), function(tb){
+      var w = document.createElement('div'); w.className = 'tbl'; tb.parentNode.insertBefore(w, tb); w.appendChild(tb);
+      var th = tb.querySelector('th'); if (th && /^(寫成|Written)$/.test(th.textContent.trim())) w.classList.add('errors');
+    });
+    Array.prototype.forEach.call(main.querySelectorAll('blockquote'), function(bq){
+      var tools = document.createElement('div'); tools.className = 'bq-tools';
+      tools.innerHTML = '<button class="copy-bq" type="button">' + t.copyAll + '</button>';
+      bq.parentNode.insertBefore(tools, bq.nextSibling);
+    });
+    // checklist: first ordered list under the "0." part
+    var zeroPart = null;
+    Array.prototype.forEach.call(main.querySelectorAll('.part > h2'), function(h2){ if (/^0\./.test(h2.textContent.trim())) zeroPart = h2.parentNode; });
+    if (zeroPart){
+      var ol = zeroPart.querySelector('ol');
+      if (ol){
+        var items = ol.querySelectorAll(':scope > li');
+        Array.prototype.forEach.call(items, function(li, i){
+          li.className = 'check';
+          li.innerHTML = '<label class="chk"><input class="chkbox" type="checkbox" data-i="' + i + '"><span><span class="n">' + (i + 1) + '.</span>' + li.innerHTML + '</span></label>';
+        });
+        var tools = document.createElement('div'); tools.className = 'chk-tools';
+        tools.innerHTML = '<span class="chk-progress" id="chk-progress"></span><button type="button" id="chk-clear">' + t.clear + '</button>';
+        ol.parentNode.insertBefore(tools, ol.nextSibling);
+      }
+    }
+    // copy buttons on English list items
+    Array.prototype.forEach.call(main.querySelectorAll('li'), function(li){
+      if (li.classList.contains('check') || li.querySelector(':scope > label.chk')) return;
+      var txt = ownText(li);
+      if (txt.length < 3 || !/[A-Za-z]{2,}/.test(txt)) return;
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'copy'; b.setAttribute('aria-label', t.copy); b.innerHTML = ICON;
+      li.appendChild(b); li.classList.add('has-copy');
+    });
+  }
+
+  function setOpen(sec, open){
+    var btn = sec.querySelector('.tog'); if (!btn) return;
+    btn.setAttribute('aria-expanded', String(open)); sec.classList.toggle('collapsed', !open);
+  }
+  function applyCollapsed(){ units.forEach(function(u){ if (u.collapsible) setOpen(u.el, !collapsed[u.idx]); }); }
+  function saveCollapsed(){ store.set('ielts.collapsed', Object.keys(collapsed).filter(function(k){ return collapsed[k]; }).map(Number)); }
+
+  function applyChecks(){
+    var boxes = main.querySelectorAll('.chkbox'); var n = 0;
+    Array.prototype.forEach.call(boxes, function(cb){ var on = !!checks[cb.dataset.i]; cb.checked = on; cb.closest('.chk').classList.toggle('done', on); if (on) n++; });
+    var p = $('#chk-progress'); if (p) p.innerHTML = T[lang].ticked(n, boxes.length);
+  }
+
+  function highlight(root, q){
+    var re = new RegExp(escRe(q), 'gi');
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: function(n){
+      var p = n.parentNode; if (!p || /^(BUTTON|SCRIPT|STYLE|MARK)$/.test(p.tagName)) return NodeFilter.FILTER_REJECT;
+      return re.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP; } });
+    var nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(n){
+      var frag = document.createDocumentFragment(), text = n.nodeValue, last = 0, m; re.lastIndex = 0;
+      while ((m = re.exec(text))){
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        var mk = document.createElement('mark'); mk.textContent = m[0]; frag.appendChild(mk); last = m.index + m[0].length;
+        if (!m[0].length) re.lastIndex++;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      n.parentNode.replaceChild(frag, n);
+    });
+  }
+
+  function applySearch(){ applySearchCore(); applyTabs(); var q = search.value.trim(); Array.prototype.forEach.call(main.querySelectorAll('.group-h'), function(g){ g.hidden = !!q; }); }
+  function applySearchCore(){
+    var q = search.value.trim(), ql = q.toLowerCase(), count = 0;
+    searchWrap.classList.toggle('has', q.length > 0);
+    var intro = main.querySelector('.intro'), title = main.querySelector('.doc-title');
+    units.forEach(function(u){ u.body.innerHTML = u.html; });
+    if (!q){
+      units.forEach(function(u){ u.el.hidden = false; if (u.partEl) u.partEl.hidden = false; });
+      if (intro) intro.hidden = false; if (title) title.hidden = false;
+      applyCollapsed(); applyChecks(); $('#results').textContent = ''; return;
+    }
+    var parts = {};
+    units.forEach(function(u){
+      var hit = u.title.toLowerCase().indexOf(ql) >= 0 || u.body.textContent.toLowerCase().indexOf(ql) >= 0;
+      u.el.hidden = !hit;
+      if (hit){ count++; highlight(u.body, q); if (u.collapsible) setOpen(u.el, true); }
+      if (u.partEl){ if (!(u.partEl.id in parts)) parts[u.partEl.id] = false; if (hit) parts[u.partEl.id] = true; }
+    });
+    units.forEach(function(u){ if (u.partEl) u.partEl.hidden = !parts[u.partEl.id]; });
+    if (intro) intro.hidden = true; if (title) title.hidden = true;
+    applyChecks();
+    $('#results').textContent = count ? T[lang].results(count) : T[lang].none;
+  }
+
+  var toastTimer;
+  function toast(msg){ var el = $('#toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 1400); }
+  function copyText(text){
+    var done = function(){ toast(T[lang].copied); };
+    if (navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done, function(){ fallback(); }); } else fallback();
+    function fallback(){ var ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch(e){} ta.remove(); done(); }
+  }
+
+  // events
+  main.addEventListener('click', function(e){
+    var tog = e.target.closest('.tog');
+    if (tog){ var sec = tog.closest('.sec'), open = tog.getAttribute('aria-expanded') !== 'true'; setOpen(sec, open);
+      if (!search.value.trim()){ if (open) delete collapsed[sec.dataset.idx]; else collapsed[sec.dataset.idx] = true; saveCollapsed(); } return; }
+    var tt = e.target.closest('.ttabs button'); if (tt){ ttSel[tt.parentNode.dataset.block] = tt.dataset.tt; store.set('ielts.ttab', ttSel); applyTabs(); return; }
+    var ps = e.target.closest('.psubs button'); if (ps){ var gg = ps.closest('.pgroup'); psubSel[gg.dataset.g] = ps.dataset.sub; store.set('ielts.psub', psubSel); applyTabs(); return; }
+    var pt = e.target.closest('.ptabs button'); if (pt){ ptab = pt.dataset.tab; store.set('ielts.ptab', ptab); applyTabs(); return; }
+    var cp = e.target.closest('.copy'); if (cp){ copyText(ownText(cp.parentNode)); return; }
+    var cb = e.target.closest('.copy-bq'); if (cb){ var bq = cb.parentNode.previousElementSibling; if (bq) copyText(Array.prototype.map.call(bq.querySelectorAll('p'), function(p){ return p.textContent.trim(); }).join('\n\n')); return; }
+    if (e.target.closest('#chk-clear')){ checks = {}; store.set('ielts.checks', checks); applyChecks(); return; }
+  });
+  main.addEventListener('change', function(e){
+    var cb = e.target.closest('.chkbox'); if (!cb) return;
+    if (cb.checked) checks[cb.dataset.i] = true; else delete checks[cb.dataset.i];
+    store.set('ielts.checks', checks); applyChecks();
+  });
+  var deb; search.addEventListener('input', function(){ clearTimeout(deb); deb = setTimeout(applySearch, 120); });
+  $('#search-clear').addEventListener('click', function(){ search.value = ''; applySearch(); search.focus(); });
+  search.addEventListener('keydown', function(e){ if (e.key === 'Escape'){ search.value = ''; applySearch(); } });
+  Array.prototype.forEach.call(document.querySelectorAll('.lang button'), function(b){
+    b.addEventListener('click', function(){
+      if (b.dataset.lang === lang) return;
+      var top = currentUnitId(); lang = b.dataset.lang; store.set('ielts.lang.v2', lang); render();
+      if (top){ var el = document.getElementById(top); if (el) el.scrollIntoView({ block: 'start' }); }
+    });
+  });
+  $('#expand-all').addEventListener('click', function(){
+    collapsed = {}; saveCollapsed(); applyCollapsed();
+    tocShut = {}; store.set('ielts.tocShut', tocShut); applyTocShut();
+  });
+  $('#collapse-all').addEventListener('click', function(){
+    units.forEach(function(u){ if (u.collapsible) collapsed[u.idx] = true; }); saveCollapsed(); applyCollapsed();
+    Array.prototype.forEach.call(tocList.querySelectorAll('.toc-part, .toc-group'), function(li){ if (li.querySelector(':scope > ul').children.length) tocShut[li.dataset.p] = true; });
+    store.set('ielts.tocShut', tocShut); applyTocShut();
+  });
+
+  function currentUnitId(){
+    var barH = document.querySelector('.bar').getBoundingClientRect().bottom;
+    for (var i = 0; i < units.length; i++){ var r = units[i].el.getBoundingClientRect(); if (!units[i].el.hidden && r.bottom > barH + 8) return units[i].el.id; }
+    return null;
+  }
+
+  // drawer
+  var toc = $('#toc'), scrim = $('#scrim'), menuBtn = $('#menu-btn');
+  var desk = window.matchMedia('(min-width:900px)');
+  function openToc(o){ toc.classList.toggle('open', o); scrim.classList.toggle('show', o); menuBtn.setAttribute('aria-expanded', String(o)); }
+  function setHidden(h){ tocHidden = h; store.set('ielts.tocHidden', h); document.body.classList.toggle('toc-hidden', h); if (desk.matches) menuBtn.setAttribute('aria-expanded', String(!h)); }
+  document.body.classList.toggle('toc-hidden', tocHidden);
+  if (desk.matches) menuBtn.setAttribute('aria-expanded', String(!tocHidden));
+  menuBtn.addEventListener('click', function(){ if (desk.matches) setHidden(!tocHidden); else openToc(!toc.classList.contains('open')); });
+  $('#toc-close').addEventListener('click', function(){ if (desk.matches) setHidden(true); else openToc(false); });
+  var onMq = function(){ openToc(false); menuBtn.setAttribute('aria-expanded', String(desk.matches ? !tocHidden : false)); };
+  if (desk.addEventListener) desk.addEventListener('change', onMq); else if (desk.addListener) desk.addListener(onMq);
+  scrim.addEventListener('click', function(){ openToc(false); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') openToc(false); });
+  tocList.addEventListener('click', function(e){
+    var tg = e.target.closest('.toc-tog');
+    if (tg){ var li = tg.closest('.toc-group, .toc-part'); if (tocShut[li.dataset.p]) delete tocShut[li.dataset.p]; else tocShut[li.dataset.p] = true; store.set('ielts.tocShut', tocShut); applyTocShut(); return; }
+    var a = e.target.closest('a'); if (!a) return;
+    var id = a.getAttribute('href').slice(1), el = document.getElementById(id);
+    if (el){ var sec = el.closest('.sec'); if (sec && sec.classList.contains('collapsed')){ setOpen(sec, true); delete collapsed[sec.dataset.idx]; saveCollapsed(); } }
+    if (!desk.matches) openToc(false);
+  });
+
+  // active heading in TOC
+  var io;
+  function observeHeadings(){
+    if (io) io.disconnect(); if (!('IntersectionObserver' in window)) return;
+    var links = {}; Array.prototype.forEach.call(tocList.querySelectorAll('a'), function(a){ links[a.getAttribute('href').slice(1)] = a; });
+    io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if (en.isIntersecting){ Array.prototype.forEach.call(tocList.querySelectorAll('a.active'), function(a){ a.classList.remove('active'); }); var l = links[en.target.id]; if (l){ l.classList.add('active'); } } });
+    }, { rootMargin: '-64px 0px -75% 0px', threshold: 0 });
+    units.forEach(function(u){ if (u.collapsible) io.observe(u.el); });
+    Array.prototype.forEach.call(main.querySelectorAll('.part > h2'), function(h){ io.observe(h); });
+  }
+
+  function boot(){ setupMarked(); render(); }
+  if (window.marked){ boot(); }
+  else {
+    var alt = document.createElement('script'); alt.src = 'https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js';
+    alt.onload = boot; alt.onerror = boot; document.head.appendChild(alt);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=Newsreader:opsz,wght@6..72,400;6..72,500&amp;family=JetBrains+Mono:wght@400;500&amp;family=Noto+Sans+TC:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;color-scheme:dark;background:oklch(0.16 0.008 70);color:oklch(0.9 0.01 80);font-family:'IBM Plex Sans','Noto Sans TC',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:oklch(0.74 0.12 45)}a:hover{color:oklch(0.82 0.11 45)}
+input::placeholder{color:oklch(0.6 0.012 75)}
+</style>
+</helmet>
+<sc-if value="{{ selBar.show }}" hint-placeholder-val="{{ false }}">
+  <div data-selbar="1" style="position:fixed;left:{{ selBar.x }};top:{{ selBar.y }};transform:{{ selBar.tf }};z-index:50;display:flex;gap:2px;padding:3px;border-radius:9px;background:oklch(0.24 0.012 70);border:1px solid oklch(0.36 0.012 70);box-shadow:0 6px 18px oklch(0 0 0 / 0.45)">
+    <sc-if value="{{ selBar.canMark }}" hint-placeholder-val="{{ false }}"><button type="button" title="{{ selBar.markTitle }}" onMouseDown="{{ selBar.mark }}" style="border:0;cursor:pointer;font:inherit;font-size:13px;padding:6px 10px;border-radius:6px;background:transparent;color:oklch(0.92 0.01 80);white-space:nowrap;color:oklch(0.88 0.12 85)" style-hover="background:oklch(0.3 0.014 70)">{{ selBar.markLabel }}</button></sc-if>
+    <sc-if value="{{ selBar.canMove }}" hint-placeholder-val="{{ false }}"><button type="button" onMouseDown="{{ selBar.up }}" style="border:0;cursor:pointer;font:inherit;font-size:13px;padding:6px 10px;border-radius:6px;background:transparent;color:oklch(0.92 0.01 80);white-space:nowrap" style-hover="background:oklch(0.3 0.014 70)">{{ selBar.upLabel }}</button><button type="button" onMouseDown="{{ selBar.top }}" style="border:0;cursor:pointer;font:inherit;font-size:13px;padding:6px 10px;border-radius:6px;background:transparent;color:oklch(0.92 0.01 80);white-space:nowrap" style-hover="background:oklch(0.3 0.014 70)">{{ selBar.topLabel }}</button></sc-if>
+  </div>
+</sc-if>
+<div style="min-height:100vh;display:flex;flex-direction:column">
+  <header style="position:sticky;top:0;z-index:5;background:oklch(0.16 0.008 70 / 0.92);backdrop-filter:blur(8px);border-bottom:1px solid oklch(0.27 0.01 70);padding:14px 28px;display:flex;flex-wrap:wrap;align-items:center;gap:14px 24px">
+    <div style="display:flex;align-items:baseline;gap:12px;flex:1 1 260px;min-width:0"><a class="back" href="../projects.html" title="Back to home" aria-label="Back to home" style="text-decoration:none;color:inherit;font-size:1.25rem;line-height:1;padding:4px 8px;border-radius:6px;opacity:.75;flex:0 0 auto">←</a>
+      <div style="font-family:'Newsreader',serif;font-size:26px;letter-spacing:-0.01em;white-space:nowrap">{{ L.title }}</div>
+      <div style="font-size:13px;color:oklch(0.68 0.012 75)">{{ totalLabel }}</div>
+    </div>
+    <div style="flex:1 1 280px;max-width:420px;display:flex;align-items:center;gap:8px;background:oklch(0.205 0.009 70);border:1px solid oklch(0.3 0.01 70);border-radius:8px;padding:0 12px;height:38px">
+      <span style="font-size:13px;color:oklch(0.64 0.012 75)">⌕</span>
+      <input value="{{ q }}" onChange="{{ onSearch }}" placeholder="{{ L.search }}" style="flex:1;min-width:0;border:0;outline:none;background:transparent;font:inherit;font-size:14px;color:inherit">
+      <button type="button" onClick="{{ mcx.toggleMC }}" title="{{ mcx.mcTitle }}" aria-pressed="{{ mcx.mcOn }}" style="border:1px solid {{ mcx.mcBd }};cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;line-height:1;padding:4px 6px;border-radius:5px;background:{{ mcx.mcBg }};color:{{ mcx.mcCol }}">Aa</button>
+      <sc-if value="{{ hasQ }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ clearSearch }}" style="border:0;background:transparent;cursor:pointer;color:oklch(0.68 0.012 75);font-size:13px;padding:4px">✕</button>
+      </sc-if>
+      <button onClick="{{ toggleNatOnly }}" style="flex:none;border:1px solid {{ natOnlyBd }};background:{{ natOnlyBg }};color:{{ natOnlyCol }};cursor:pointer;font:inherit;font-size:12px;font-weight:500;padding:3px 9px;border-radius:99px;white-space:nowrap">{{ natOnlyLabel }}</button>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;background:oklch(0.24 0.01 70);border-radius:8px;padding:3px;gap:2px">
+        <sc-for list="{{ viewOpts }}" as="m" hint-placeholder-count="2">
+          <button onClick="{{ m.onClick }}" style="border:0;cursor:pointer;font:inherit;font-size:13px;font-weight:500;padding:6px 12px;border-radius:6px;background:{{ m.bg }};color:{{ m.col }};box-shadow:{{ m.sh }}">{{ m.label }}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex;background:oklch(0.24 0.01 70);border-radius:8px;padding:3px;gap:2px">
+        <sc-for list="{{ modeOpts }}" as="m" hint-placeholder-count="2">
+          <button onClick="{{ m.onClick }}" style="border:0;cursor:pointer;font:inherit;font-size:13px;font-weight:500;padding:6px 12px;border-radius:6px;background:{{ m.bg }};color:{{ m.col }};box-shadow:{{ m.sh }}">{{ m.label }}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex;background:oklch(0.24 0.01 70);border-radius:8px;padding:3px;gap:2px">
+        <sc-for list="{{ langOpts }}" as="m" hint-placeholder-count="2">
+          <button onClick="{{ m.onClick }}" style="border:0;cursor:pointer;font:inherit;font-size:13px;font-weight:500;padding:6px 10px;border-radius:6px;background:{{ m.bg }};color:{{ m.col }};box-shadow:{{ m.sh }}">{{ m.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </header>
+
+  <sc-if value="{{ isGlossary }}" hint-placeholder-val="{{ false }}">
+    <main style="max-width:900px;width:100%;margin:0 auto;padding:32px 28px 80px;box-sizing:border-box;display:flex;flex-direction:column;gap:22px">
+      <div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.72 0.12 45)">{{ L.glossCrumb }}</div>
+        <h1 style="font-family:'Newsreader','Noto Sans TC',serif;font-weight:400;font-size:40px;line-height:1.1;letter-spacing:-0.015em;margin:6px 0 6px">{{ L.glossTitle }}</h1>
+        <div style="font-size:14px;color:oklch(0.7 0.012 75);max-width:62ch;text-wrap:pretty">{{ L.glossSub }}</div>
+      </div>
+      <sc-for list="{{ gloss }}" as="g" hint-placeholder-count="2">
+        <section style="background:oklch(0.205 0.009 70);border:1px solid oklch(0.26 0.01 70);border-radius:12px;padding:24px 26px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px 16px">
+            <h2 style="margin:0;font-family:'Newsreader','Noto Sans TC',serif;font-weight:500;font-size:28px;color:oklch(0.97 0.008 80)">{{ g.term }}</h2>
+            <button onClick="{{ g.see }}" style="border:1px solid oklch(0.32 0.01 70);background:transparent;cursor:pointer;font:inherit;font-size:13px;padding:6px 12px;border-radius:7px;color:oklch(0.82 0.01 80)">{{ g.seeLabel }}</button>
+          </div>
+          <div style="font-size:16px;line-height:1.7;color:oklch(0.88 0.01 80);text-wrap:pretty">
+            <sc-for list="{{ g.def }}" as="s"><span style="text-decoration:{{ s.td }};text-decoration-color:oklch(0.8 0.12 30);text-underline-offset:4px;text-decoration-thickness:1.5px;font-style:{{ s.fi }};font-weight:{{ s.w }};font-family:{{ s.ff }};background:{{ s.bg }};padding:{{ s.pad }};font-size:{{ s.fs }};color:{{ s.col }};border-radius:3px">{{ s.t }}</span></sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ g.rules }}" as="r">
+              <div style="display:flex;flex-direction:column;gap:8px;background:oklch(0.18 0.008 70);border-radius:9px;padding:14px 16px">
+                <div style="font-size:14px;font-weight:600;color:oklch(0.9 0.01 80)">
+                  <sc-for list="{{ r.title }}" as="s"><span style="text-decoration:{{ s.td }};text-decoration-color:oklch(0.8 0.12 30);text-underline-offset:4px;text-decoration-thickness:1.5px;font-style:{{ s.fi }};font-family:{{ s.ff }};background:{{ s.bg }};padding:{{ s.pad }};font-size:{{ s.fs }};border-radius:3px">{{ s.t }}</span></sc-for>
+                </div>
+                <div style="display:grid;grid-template-columns:22px minmax(0,1fr);gap:4px 8px;font-family:'Newsreader','Noto Sans TC',serif;font-size:17px;line-height:1.5">
+                  <sc-for list="{{ r.ex }}" as="x">
+                    <span style="color:{{ x.markCol }};font-family:'IBM Plex Sans',sans-serif;font-size:14px;font-weight:600">{{ x.mark }}</span>
+                    <span style="color:{{ x.col }};text-decoration:{{ x.deco }};text-decoration-color:oklch(0.68 0.14 35 / 0.6)"><sc-for list="{{ x.segs }}" as="s"><span style="text-decoration:{{ s.td }};text-decoration-color:oklch(0.8 0.12 30);text-underline-offset:4px;text-decoration-thickness:1.5px;font-style:{{ s.fi }};font-weight:{{ s.w }};font-family:{{ s.ff }};background:{{ s.bg }};padding:{{ s.pad }};font-size:{{ s.fs }};border-radius:3px">{{ s.t }}</span></sc-for></span>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:14px;line-height:1.7;color:oklch(0.78 0.01 80);border-top:1px solid oklch(0.26 0.01 70);padding-top:12px">
+            <sc-for list="{{ g.tip }}" as="s"><span style="text-decoration:{{ s.td }};text-decoration-color:oklch(0.8 0.12 30);text-underline-offset:4px;text-decoration-thickness:1.5px;font-style:{{ s.fi }};font-weight:{{ s.w }};font-family:{{ s.ff }};background:{{ s.bg }};padding:{{ s.pad }};font-size:{{ s.fs }};color:{{ s.col }};border-radius:3px">{{ s.t }}</span></sc-for>
+          </div>
+        </section>
+      </sc-for>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isMistakes }}" hint-placeholder-val="{{ false }}">
+    <main style="max-width:900px;width:100%;margin:0 auto;padding:32px 28px 80px;box-sizing:border-box;display:flex;flex-direction:column;gap:18px">
+      <div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.72 0.12 45)">{{ mk.crumb }}</div>
+        <h1 style="font-family:'Newsreader','Noto Sans TC',serif;font-weight:400;font-size:40px;line-height:1.1;letter-spacing:-0.015em;margin:6px 0 6px">{{ mk.title }}</h1>
+        <div style="font-size:14px;color:oklch(0.7 0.012 75);max-width:64ch;text-wrap:pretty">{{ mk.sub }}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;gap:8px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.62 0.012 75);padding:0 22px">
+        <span>{{ mk.colType }}</span><span style="text-align:right">{{ mk.colNotes }}</span><span style="text-align:right">{{ mk.colSession }}</span>
+      </div>
+      <sc-for list="{{ mk.rows }}" as="r" hint-placeholder-count="6">
+        <section style="background:oklch(0.205 0.009 70);border:1px solid oklch(0.26 0.01 70);border-radius:12px;padding:18px 22px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 64px 64px;gap:8px;align-items:baseline">
+            <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+              <h2 style="margin:0;font-family:'Newsreader','Noto Sans TC',serif;font-weight:500;font-size:22px;color:oklch(0.97 0.008 80)">{{ r.label }}</h2>
+              <div style="font-size:13px;color:oklch(0.7 0.012 75);text-wrap:pretty">{{ r.desc }}</div>
+            </div>
+            <span style="text-align:right;font-family:'Newsreader',serif;font-size:26px;color:oklch(0.88 0.12 90)">{{ r.n }}</span>
+            <span style="text-align:right;font-family:'Newsreader',serif;font-size:20px;color:oklch(0.7 0.012 75)">{{ r.s }}</span>
+          </div>
+          <div style="height:4px;border-radius:2px;background:oklch(0.26 0.01 70);overflow:hidden"><div style="height:100%;width:{{ r.pct }};background:oklch(0.88 0.12 90);border-radius:2px"></div></div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ r.ex }}" as="x">
+              <div style="display:grid;grid-template-columns:18px minmax(0,1fr);gap:2px 8px;font-family:'Newsreader','Noto Sans TC',serif;font-size:16px;line-height:1.45;background:oklch(0.18 0.008 70);border-radius:8px;padding:10px 12px">
+                <span style="color:oklch(0.68 0.14 35);font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600">✗</span>
+                <span style="color:oklch(0.7 0.03 40);text-decoration:line-through;text-decoration-color:oklch(0.68 0.14 35 / 0.6)">{{ x.o }}</span>
+                <span style="color:oklch(0.8 0.12 150);font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:600">✓</span>
+                <span style="color:oklch(0.9 0.01 80)"><sc-for list="{{ x.segs }}" as="s"><span style="font-style:{{ s.fi }};font-weight:{{ s.w }};font-family:{{ s.ff }};background:{{ s.bg }};padding:{{ s.pad }};font-size:{{ s.fs }};color:{{ s.col }};border-radius:3px">{{ s.t }}</span></sc-for></span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </sc-for>
+    </main>
+  </sc-if>
+
+  <sc-if value="{{ isNotes }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-start;flex:1">
+    <sc-if value="{{ navClosed }}" hint-placeholder-val="{{ false }}">
+      <div style="position:sticky;top:67px;padding:22px 0 0 16px;flex:none">
+        <button onClick="{{ toggleNav }}" title="{{ L.showNav }}" style="border:1px solid oklch(0.3 0.01 70);background:oklch(0.205 0.009 70);color:oklch(0.82 0.01 80);cursor:pointer;font:inherit;font-size:13px;padding:7px 10px;border-radius:7px;display:flex;align-items:center;gap:6px"><span style="font-size:14px">»</span>{{ L.showNav }}</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ navOpen }}" hint-placeholder-val="{{ true }}">
+    <nav style="flex:1 1 250px;max-width:300px;position:sticky;top:67px;max-height:calc(100vh - 67px);overflow:auto;padding:22px 16px 40px 24px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px">
+      <button onClick="{{ toggleNav }}" style="align-self:flex-end;border:0;background:transparent;color:oklch(0.64 0.012 75);cursor:pointer;font:inherit;font-size:12px;padding:2px 6px;border-radius:5px;margin-bottom:4px;display:flex;align-items:center;gap:4px"><span style="font-size:13px">«</span>{{ L.hideNav }}</button>
+      <div style="display:flex;gap:2px;padding:2px;margin:0 10px 10px;border-radius:7px;background:oklch(0.17 0.008 70);border:1px solid oklch(0.28 0.01 70)">
+        <sc-for list="{{ sortOpts }}" as="o"><button onClick="{{ o.onClick }}" style="flex:1;border:0;cursor:pointer;font:inherit;font-size:12px;font-weight:500;padding:5px 8px;border-radius:5px;background:{{ o.bg }};color:{{ o.col }}">{{ o.label }}</button></sc-for>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;padding:0 10px 12px;flex-wrap:wrap">
+        <button onClick="{{ renumber }}" title="{{ renumHint }}" style="border:1px solid oklch(0.32 0.01 70);background:transparent;cursor:pointer;font:inherit;font-size:12px;padding:5px 10px;border-radius:6px;color:oklch(0.82 0.01 80)" style-hover="background:oklch(0.25 0.01 70)">{{ renumLabel }}</button>
+        <sc-if value="{{ showReset }}" hint-placeholder-val="{{ false }}"><button onClick="{{ resetRenum }}" style="border:0;background:transparent;cursor:pointer;font:inherit;font-size:12px;padding:0;color:oklch(0.7 0.012 75);text-decoration:underline">{{ resetLabel }}</button></sc-if>
+      </div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.64 0.012 75);padding:0 10px 8px">{{ L.categories }}</div>
+      <sc-if value="{{ starNote.show }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:12px;line-height:1.5;color:oklch(0.7 0.012 75);padding:0 10px 10px;text-wrap:pretty">{{ starNote.text }}</div>
+      </sc-if>
+      <sc-for list="{{ nav }}" as="c" hint-placeholder-count="7">
+        <div style="display:flex;flex-direction:column">
+          <button onClick="{{ c.onClick }}" style="border:0;cursor:pointer;font:inherit;text-align:left;display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 10px;border-radius:7px;background:{{ c.bg }};color:{{ c.col }}">
+            <span style="font-size:14px;font-weight:{{ c.fw }}">{{ c.label }}</span>
+            <span style="font-size:12px;font-variant-numeric:tabular-nums;color:{{ c.numCol }}">{{ c.count }}</span>
+          </button>
+          <sc-if value="{{ c.open }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:1px;margin:2px 0 8px 10px;padding-left:10px;border-left:1px solid oklch(0.3 0.01 70)">
+              <sc-for list="{{ c.series }}" as="s" hint-placeholder-count="3">
+                <button onClick="{{ s.onClick }}" style="border:0;cursor:pointer;font:inherit;text-align:left;display:flex;justify-content:space-between;gap:10px;padding:5px 8px;border-radius:5px;font-size:13px;background:{{ s.bg }};color:{{ s.col }}">
+                  <span>{{ s.label }}</span>
+                  <span style="font-size:11px;color:oklch(0.6 0.012 75);font-variant-numeric:tabular-nums">{{ s.count }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+      <div style="margin:22px 10px 0;padding:14px;border-radius:8px;background:oklch(0.27 0.012 70);font-size:12px;line-height:1.6;color:oklch(0.72 0.012 75)">
+        <div style="font-weight:600;margin-bottom:6px;color:oklch(0.86 0.01 80)">{{ L.legendTitle }}</div>
+        <div>{{ L.legendBody }}</div>
+        <div style="display:flex;flex-direction:column;gap:3px;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px">
+          <sc-for list="{{ L.legend }}" as="g" hint-placeholder-count="5">
+            <div style="display:flex;gap:8px"><span style="min-width:96px;color:oklch(0.86 0.01 80)">{{ g.a }}</span><span style="font-family:'IBM Plex Sans','Noto Sans TC',sans-serif">{{ g.b }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="margin:12px 10px 0;padding:14px;border-radius:8px;background:oklch(0.27 0.012 70);font-size:12px;line-height:1.6;color:oklch(0.72 0.012 75)">
+        <div style="font-weight:600;margin-bottom:8px;color:oklch(0.86 0.01 80)">{{ legend.title }}</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <sc-for list="{{ legend.items }}" as="l" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="min-width:40px;font-family:'Newsreader',serif;font-size:14px;font-weight:{{ l.w }};color:{{ l.col }};background:{{ l.bg }};padding:{{ l.pad }};border-radius:3px;text-decoration:{{ l.deco }};text-align:center">{{ l.sample }}</span>
+              <span style="font-family:'IBM Plex Sans','Noto Sans TC',sans-serif">{{ l.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </nav>
+    </sc-if>
+
+    <main style="flex:999 1 480px;min-width:0;padding:28px 32px 80px;box-sizing:border-box;max-width:980px">
+      <form onSubmit="{{ rp.send }}" style="display:flex;flex-direction:column;gap:10px;background:oklch(0.205 0.009 70);border:1px solid oklch(0.28 0.01 70);border-radius:12px;padding:14px 16px;margin-bottom:22px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+          <div style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.72 0.12 45)">{{ rp.title }}</div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div style="font-size:12px;color:oklch(0.66 0.012 75)">{{ rp.status }}</div>
+            
+            <div role="radiogroup" style="display:flex;gap:2px;padding:2px;border-radius:7px;background:oklch(0.17 0.008 70);border:1px solid oklch(0.3 0.01 70)">
+              <sc-for list="{{ rp.matchOpts }}" as="m"><button type="button" onClick="{{ m.onClick }}" style="border:0;cursor:pointer;font:inherit;font-size:12px;font-weight:500;padding:4px 10px;border-radius:5px;background:{{ m.bg }};color:{{ m.col }}">{{ m.label }}</button></sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto auto;gap:8px">
+          <div style="position:relative;min-width:0;display:flex;align-items:center">
+            <input value="{{ rp.find }}" onChange="{{ rp.onFind }}" placeholder="{{ rp.findPh }}" style="width:100%;box-sizing:border-box;min-width:0;font:inherit;font-size:14px;padding:9px 44px 9px 12px;border-radius:8px;border:1px solid oklch(0.32 0.01 70);background:oklch(0.17 0.008 70);color:oklch(0.95 0.01 80);outline:none">
+            <button type="button" onClick="{{ rp.toggleMC }}" title="{{ rp.mcTitle }}" aria-pressed="{{ rp.mcOn }}" style="position:absolute;right:7px;top:50%;transform:translateY(-50%);border:1px solid {{ rp.mcBd }};cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;line-height:1;padding:4px 6px;border-radius:5px;background:{{ rp.mcBg }};color:{{ rp.mcCol }}">Aa</button>
+          </div>
+          <input value="{{ rp.repl }}" onChange="{{ rp.onRepl }}" placeholder="{{ rp.replPh }}" style="min-width:0;font:inherit;font-size:14px;padding:9px 12px;border-radius:8px;border:1px solid oklch(0.32 0.01 70);background:oklch(0.17 0.008 70);color:oklch(0.95 0.01 80);outline:none">
+          <button type="button" onClick="{{ rp.suggest }}" style="border:1px solid oklch(0.4 0.05 45);cursor:pointer;font:inherit;font-size:14px;font-weight:500;padding:9px 14px;border-radius:8px;background:transparent;color:oklch(0.85 0.06 50);opacity:{{ rp.busyOp }}" style-hover="background:oklch(0.25 0.02 50)">{{ rp.suggestLabel }}</button>
+          <button type="submit" style="border:0;cursor:pointer;font:inherit;font-size:14px;font-weight:600;padding:9px 18px;border-radius:8px;background:oklch(0.72 0.12 45);color:oklch(0.17 0.01 60)" style-hover="background:oklch(0.78 0.12 45)">{{ rp.sendLabel }}</button>
+        </div>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px">
+          <input value="{{ rp.mk }}" onChange="{{ rp.onMk }}" onKeyDown="{{ rp.mkKey }}" placeholder="{{ rp.mkPh }}" style="min-width:0;font:inherit;font-size:14px;padding:9px 12px;border-radius:8px;border:1px solid oklch(0.32 0.01 70);background:oklch(0.17 0.008 70);color:oklch(0.95 0.01 80);outline:none"></input>
+          <button type="button" onClick="{{ rp.suggestMk }}" style="border:1px solid oklch(0.4 0.05 45);cursor:pointer;font:inherit;font-size:14px;font-weight:500;padding:9px 14px;border-radius:8px;background:transparent;color:oklch(0.85 0.06 50);opacity:{{ rp.mkSugOp }}" style-hover="background:oklch(0.25 0.02 50)">{{ rp.mkSugLabel }}</button>
+          <button type="button" onClick="{{ rp.sendMk }}" style="border:1px solid oklch(0.4 0.05 45);cursor:pointer;font:inherit;font-size:14px;font-weight:600;padding:9px 18px;border-radius:8px;background:transparent;color:oklch(0.85 0.06 50)" style-hover="background:oklch(0.25 0.02 50)">{{ rp.mkLabel }}</button>
+        </div>
+        <sc-if value="{{ rp.hasMkSug }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ rp.mkSug }}" as="s">
+              <button type="button" onClick="{{ s.use }}" style="border:1px solid oklch(0.3 0.01 70);cursor:pointer;font:inherit;text-align:left;display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:8px;background:oklch(0.17 0.008 70);color:oklch(0.95 0.01 80)" style-hover="border-color:oklch(0.6 0.1 45)">
+                <span style="font-size:14px;font-weight:500">{{ s.text }}</span>
+                <span style="font-size:12.5px;color:oklch(0.7 0.012 75);text-wrap:pretty">{{ s.note }}</span>
+              </button>
+            </sc-for>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:2px">
+              <input value="{{ rp.mkRefine }}" onChange="{{ rp.onMkRefine }}" onKeyDown="{{ rp.mkRefKey }}" placeholder="{{ rp.refinePh }}" style="min-width:0;font:inherit;font-size:13px;padding:8px 12px;border-radius:8px;border:1px dashed oklch(0.38 0.03 50);background:oklch(0.17 0.008 70);color:oklch(0.95 0.01 80);outline:none"></input>
+              <button type="button" onClick="{{ rp.regenMk }}" style="border:1px solid oklch(0.4 0.05 45);cursor:pointer;font:inherit;font-size:13px;font-weight:500;padding:8px 14px;border-radius:8px;background:transparent;color:oklch(0.85 0.06 50)" style-hover="background:oklch(0.25 0.02 50)">{{ rp.regenMkLabel }}</button>
+            </div>
+          </div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px">
+          <input value="{{ rp.gp }}" onChange="{{ rp.onGp }}" onKeyDown="{{ rp.gpKey }}" placeholder="{{ rp.gpPh }}" style="min-width:0;font:inherit;font-size:14px;padding:9px 12px;border-radius:8px;border:1px solid oklch(0.32 0.01 70);background:oklch(0.17 0.008 70);color:oklch(0.95 0.01 80);outline:none"></input>
+          <button type="button" onClick="{{ rp.sendGp }}" style="border:1px solid oklch(0.4 0.05 45);cursor:pointer;font:inherit;font-size:14px;font-weight:600;padding:9px 18px;border-radius:8px;background:transparent;color:oklch(0.85 0.06 50)" style-hover="background:oklch(0.25 0.02 50)">{{ rp.gpLabel }}</button>
+        </div>
+        <sc-if value="{{ rp.hasSug }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <sc-for list="{{ rp.sug }}" as="s">
+              <button type="button" onClick="{{ s.use }}" style="border:1px solid oklch(0.3 0.01 70);cursor:pointer;font:inherit;text-align:left;display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:8px;background:oklch(0.17 0.008 70);color:oklch(0.95 0.01 80)" style-hover="border-color:oklch(0.6 0.1 45)">
+                <span style="font-family:'Newsreader','Noto Sans TC',serif;font-size:16px">{{ s.text }}</span>
+                <span style="font-size:12.5px;color:oklch(0.7 0.012 75);text-wrap:pretty">{{ s.note }}</span>
+              </button>
+            </sc-for>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-top:2px">
+              <input value="{{ rp.rpRefine }}" onChange="{{ rp.onRpRefine }}" onKeyDown="{{ rp.rpRefKey }}" placeholder="{{ rp.refinePh }}" style="min-width:0;font:inherit;font-size:13px;padding:8px 12px;border-radius:8px;border:1px dashed oklch(0.38 0.03 50);background:oklch(0.17 0.008 70);color:oklch(0.95 0.01 80);outline:none"></input>
+              <button type="button" onClick="{{ rp.regenRp }}" style="border:1px solid oklch(0.4 0.05 45);cursor:pointer;font:inherit;font-size:13px;font-weight:500;padding:8px 14px;border-radius:8px;background:transparent;color:oklch(0.85 0.06 50)" style-hover="background:oklch(0.25 0.02 50)">{{ rp.regenRpLabel }}</button>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ rp.canUndo }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:oklch(0.75 0.012 75)">
+            <span>{{ rp.lastLabel }}</span>
+            <button type="button" onClick="{{ rp.undoLast }}" style="border:0;cursor:pointer;background:transparent;font:inherit;font-size:12.5px;color:oklch(0.8 0.1 50);text-decoration:underline;padding:0">{{ rp.undoLabel }}</button>
+          </div>
+        </sc-if>
+      </form>
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px 24px;margin-bottom:22px">
+        <div style="min-width:0">
+          <div style="font-size:12px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;color:oklch(0.72 0.12 45)">{{ crumb }}</div>
+          <h1 style="font-family:'Newsreader','Noto Sans TC',serif;font-weight:400;font-size:40px;line-height:1.1;letter-spacing:-0.015em;margin:6px 0 6px;text-wrap:balance">{{ heading }}</h1>
+          <div style="font-size:14px;color:oklch(0.7 0.012 75);text-wrap:pretty;max-width:60ch">{{ subheading }}</div>
+        </div>
+        <sc-if value="{{ isPractice }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px">
+            <button onClick="{{ revealAll }}" style="border:1px solid oklch(0.32 0.01 70);background:oklch(0.205 0.009 70);cursor:pointer;font:inherit;font-size:13px;padding:8px 14px;border-radius:7px;color:inherit">{{ L.revealAll }}</button>
+            <button onClick="{{ hideAll }}" style="border:1px solid oklch(0.32 0.01 70);background:oklch(0.205 0.009 70);cursor:pointer;font:inherit;font-size:13px;padding:8px 14px;border-radius:7px;color:inherit">{{ L.hideAll }}</button>
+          </div>
+        </sc-if>
+      </div>
+
+      <sc-if value="{{ hasPatterns }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:22px">
+          <span style="font-size:12px;color:oklch(0.68 0.012 75);margin-right:4px">{{ L.patterns }}</span>
+          <sc-for list="{{ patterns }}" as="p" hint-placeholder-count="2">
+            <span style="font-family:'Newsreader',serif;font-size:15px;padding:4px 12px;border-radius:99px;background:oklch(0.27 0.04 165);color:oklch(0.85 0.07 165)">{{ p }}</span>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:60px 0;color:oklch(0.64 0.012 75);font-size:14px">{{ L.loading }}</div>
+      </sc-if>
+      <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:60px 0;color:oklch(0.68 0.012 75);font-size:15px">{{ L.empty }}</div>
+      </sc-if>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ items }}" as="e" hint-placeholder-count="4">
+          <article data-eid="{{ e.id }}" style="background:oklch(0.205 0.009 70);border:1px solid oklch(0.26 0.01 70);border-radius:12px;padding:20px 24px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:oklch(0.64 0.012 75)">
+              <span style="font-variant-numeric:tabular-nums">#{{ e.n }}</span>
+              <span>{{ e.where }}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:84px minmax(0,1fr);gap:10px 16px;align-items:baseline">
+              <div style="font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:oklch(0.72 0.13 35)">{{ L.original }}</div>
+              <div style="font-size:15px;line-height:1.6;color:oklch(0.72 0.04 40);text-decoration:line-through;text-decoration-color:oklch(0.68 0.14 35 / 0.6);text-decoration-thickness:1px;overflow-wrap:anywhere">
+                <sc-for list="{{ e.oSeg }}" as="s"><span style="text-decoration:{{ s.td }};text-decoration-color:oklch(0.8 0.12 30);text-underline-offset:4px;text-decoration-thickness:1.5px;font-style:{{ s.fi }};font-weight:{{ s.w }};font-family:{{ s.ff }};background:{{ s.bg }};padding:{{ s.pad }};font-size:{{ s.fs }};color:{{ s.col }};border-radius:3px">{{ s.t }}</span></sc-for>
+              </div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:oklch(0.76 0.1 165);padding-top:3px">{{ L.native }}</div>
+              <div style="min-width:0">
+                <sc-if value="{{ e.shown }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;flex-direction:column;gap:6px">
+                    <sc-for list="{{ e.nat }}" as="v">
+                      <div data-ni="{{ v.ni }}" style="font-family:'Newsreader','Noto Sans TC',serif;font-size:20px;line-height:1.45;color:oklch(0.95 0.01 80);text-wrap:pretty;overflow-wrap:anywhere">
+                        <sc-for list="{{ v.segs }}" as="s"><span style="text-decoration:{{ s.td }};text-decoration-color:oklch(0.8 0.12 30);text-underline-offset:4px;text-decoration-thickness:1.5px;font-style:{{ s.fi }};font-weight:{{ s.w }};font-family:{{ s.ff }};background:{{ s.bg }};padding:{{ s.pad }};font-size:{{ s.fs }};color:{{ s.col }};border-radius:3px">{{ s.t }}</span></sc-for>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ e.hidden }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ e.reveal }}" style="border:1px dashed oklch(0.45 0.06 165);background:oklch(0.22 0.025 165);color:oklch(0.82 0.08 165);cursor:pointer;font:inherit;font-size:14px;padding:10px 16px;border-radius:8px;width:100%;text-align:left">{{ L.tryIt }}</button>
+                </sc-if>
+              </div>
+            </div>
+            <sc-if value="{{ e.shown }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;flex-direction:column;gap:10px;border-top:1px solid oklch(0.24 0.01 70);padding-top:12px">
+                <button onClick="{{ e.toggleKey }}" style="align-self:flex-start;border:0;background:transparent;cursor:pointer;font:inherit;font-size:13px;font-weight:500;color:oklch(0.7 0.012 75);padding:0;display:flex;gap:6px;align-items:center">
+                  <span style="display:inline-block;width:10px">{{ e.caret }}</span>{{ L.keyPoints }}
+                </button>
+                <sc-if value="{{ e.keyOpen }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-family:'Noto Sans TC','IBM Plex Sans',sans-serif;font-size:14px;line-height:1.75;color:oklch(0.82 0.01 80);text-wrap:pretty;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:6px;margin:0;padding:0 0 0 18px">
+                    <sc-for list="{{ e.kLines }}" as="ln"><div data-ki="{{ ln.ki }}" style="display:flex;gap:10px;align-items:baseline"><span style="flex:none;width:6px;height:6px;border-radius:50%;background:oklch(0.6 0.05 165);transform:translateY(-2px);opacity:{{ ln.dot }}"></span><div style="min-width:0">
+                    <sc-for list="{{ ln.segs }}" as="s"><span style="text-decoration:{{ s.td }};text-decoration-color:oklch(0.8 0.12 30);text-underline-offset:4px;text-decoration-thickness:1.5px;font-style:{{ s.fi }};font-weight:{{ s.w }};font-family:{{ s.ff }};background:{{ s.bg }};padding:{{ s.pad }};font-size:{{ s.fs }};color:{{ s.col }};border-radius:3px">{{ s.t }}</span></sc-for>
+                    </div></div></sc-for>
+                  </div>
+                  <sc-for list="{{ e.ex }}" as="x">
+                    <div style="display:flex;flex-direction:column;gap:6px;background:oklch(0.18 0.008 70);border-radius:8px;padding:12px 14px">
+                      <div style="font-size:12px;font-weight:600;color:oklch(0.7 0.012 75)">{{ x.label }}</div>
+                      <sc-for list="{{ x.items }}" as="it">
+                        <div style="font-size:14px;line-height:1.65;padding-left:12px;border-left:2px solid oklch(0.42 0.05 165);overflow-wrap:anywhere">
+                          <sc-for list="{{ it.segs }}" as="s"><span style="text-decoration:{{ s.td }};text-decoration-color:oklch(0.8 0.12 30);text-underline-offset:4px;text-decoration-thickness:1.5px;font-style:{{ s.fi }};font-weight:{{ s.w }};font-family:{{ s.ff }};background:{{ s.bg }};padding:{{ s.pad }};font-size:{{ s.fs }};color:{{ s.col }};border-radius:3px">{{ s.t }}</span></sc-for>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </sc-if>
+              </div>
+            </sc-if>
+          </article>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ hasMore }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;justify-content:center;margin-top:24px">
+          <button onClick="{{ showMore }}" style="border:1px solid oklch(0.32 0.01 70);background:oklch(0.205 0.009 70);cursor:pointer;font:inherit;font-size:14px;padding:10px 20px;border-radius:8px;color:inherit">{{ moreLabel }}</button>
+        </div>
+      </sc-if>
+    </main>
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultLang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;zh&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;'en'|'zh'&quot;},&quot;defaultMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;read&quot;,&quot;practice&quot;],&quot;default&quot;:&quot;read&quot;,&quot;tsType&quot;:&quot;'read'|'practice'&quot;}}">
+const STR = {
+  en: { showNav:'Categories', hideNav:'Hide', glossCrumb:'Reference', glossTitle:'Grammar terms', glossSub:'Terms that come up again and again in the key points — what they mean and how to use them, with examples from your own notes.', title:'Native Phrasing Notes', search:'Search phrases or notes…', categories:'Categories', all:'All entries', read:'Read', practice:'Practice',
+    original:'You wrote', native:'Native', keyPoints:'Key points', tryIt:'Think of how a native speaker would say it — then tap to reveal',
+    revealAll:'Reveal all', hideAll:'Hide all', patterns:'Patterns', loading:'Loading notes…', empty:'No entries match your search.',
+    entries:'entries', general:'General', results:'Search results', more:'Show more', allSub:'Every corrected sentence, grouped by error type.',
+    legendTitle:'Code names → placeholders', legendBody:'Real function, parameter and file names are swapped for generic stand-ins. Within an entry, each name gets its own stem — Foo and bar are always different things.',
+    legend:[{a:'foo, bar',b:'variables, functions, params'},{a:'Foo, Bar',b:'components, classes'},{a:'FOO, BAR_*',b:'constants'},{a:'foo_key',b:'snake_case keys'},{a:'file-a.js',b:'files'},{a:'PROJ-101',b:'tickets'}] },
+  zh: { showNav:'分類', hideNav:'收合', glossCrumb:'參考', glossTitle:'文法術語', glossSub:'重點裡反覆出現的術語：意思、用法，以及取自你筆記的例句。', title:'母語者說法筆記', search:'搜尋句子或重點…', categories:'分類', all:'全部條目', read:'閱讀', practice:'練習',
+    original:'我的原句', native:'母語者', keyPoints:'重點', tryIt:'先想想母語者會怎麼說，再點擊顯示答案',
+    revealAll:'全部顯示', hideAll:'全部隱藏', patterns:'常用句型', loading:'載入中…', empty:'沒有符合的條目。',
+    entries:'條', general:'一般', results:'搜尋結果', more:'顯示更多', allSub:'所有修正過的句子，依錯誤類型分類。',
+    legendTitle:'程式名稱 → 代稱', legendBody:'函式、參數與檔名已替換為通用代稱。同一條目內每個名稱使用不同字根——Foo 與 bar 一定是不同的東西。',
+    legend:[{a:'foo, bar',b:'變數、函式、參數'},{a:'Foo, Bar',b:'元件、類別'},{a:'FOO, BAR_*',b:'常數'},{a:'foo_key',b:'snake_case 鍵名'},{a:'file-a.js',b:'檔案'},{a:'PROJ-101',b:'工單號'}] },
+};
+const PAGE = 30;
+const ACC = 'oklch(0.97 0.008 80)';
+function segs(s) {
+  const out = []; let bold = false;
+  let ital = false;
+  const src = String(s || '').split(/(`[^`]+`)/).map(x => x[0] === '`' ? x : x
+    .replace(/(?<![*\w\\])\*(?=[A-Za-z("'“])([^*`\n]*?[^\s*`\\])\*(?![*\w])/g, '\u0001$1\u0001').replace(/\\\*/g, '*')).join('');
+  let und = false;
+  for (const p of src.split(/(`[^`]+`|\*\*|\u0001|\u0002)/)) {
+    if (!p) continue;
+    if (p === '**') { bold = !bold; continue; }
+    if (p === '\u0001') { ital = !ital; continue; }
+    if (p === '\u0002') { und = !und; continue; }
+    const code = p.length > 1 && p[0] === '`' && p[p.length - 1] === '`';
+    const base = { td: und ? 'underline' : 'none', fi: ital && !code ? 'italic' : 'normal', w: bold ? '600' : 'inherit', col: bold ? ACC : 'inherit',
+      ff: code ? "'JetBrains Mono', ui-monospace, monospace" : 'inherit', bg: code ? 'oklch(0.27 0.012 70)' : 'transparent',
+      fs: code ? '0.84em' : 'inherit', pad: code ? '1px 5px' : '0' };
+    const txt = code ? p.slice(1, -1) : p;
+    if (!HL && !HLRE) { out.push({ t: txt, ...base }); continue; }
+    let i = 0;
+    const hits = [];
+    if (HLRE) { const re = new RegExp(HLRE.source, HLRE.flags.includes('g') ? HLRE.flags : HLRE.flags + 'g'); let m; while ((m = re.exec(txt))) { if (!m[0]) { re.lastIndex++; continue; } hits.push([m.index, m.index + m[0].length]); } }
+    else { const lo = txt.toLowerCase(); let j, k = 0; while ((j = lo.indexOf(HL, k)) !== -1) { hits.push([j, j + HL.length]); k = j + HL.length; } }
+    for (const [a, b] of hits) {
+      if (a > i) out.push({ t: txt.slice(i, a), ...base });
+      out.push({ t: txt.slice(a, b), ...base, bg: 'oklch(0.78 0.14 85)', col: 'oklch(0.18 0.02 70)', pad: '1px 2px' });
+      i = b;
+    }
+    if (i < txt.length) out.push({ t: txt.slice(i), ...base });
+  }
+  return out;
+}
+let HL = '';
+let HLRE = null;
+const GLOSS = {
+  en: [
+    { term: 'Gerund', q: 'gerund',
+      def: 'A **gerund** is a verb + **-ing** used as a noun — it names an action: *renaming*, *moving*, *clicking*. It looks like the progressive (*is renaming*), but it fills a noun slot: subject, object, or the thing after a preposition.',
+      rules: [
+        { title: 'After certain verbs: suggest, recommend, consider, avoid, mind, finish, keep', ex: [['x', 'Would you suggest rename `FOO_*`?'], ['ok', 'Would you suggest **renaming** `FOO_*`?'], ['ok', 'I\'d avoid **hardcoding** it.']] },
+        { title: 'After a preposition: about, of, for, instead of, without, worth', ex: [['x', 'How about refactor it like this?'], ['ok', 'How about **refactoring** it like this?'], ['ok', 'Would it be worth **splitting** `Foo`?']] },
+        { title: 'As the subject of a sentence', ex: [['x', 'Click the button can paste a query.'], ['ok', '**Clicking** the button pastes a query.']] },
+        { title: 'Contrast: some patterns take to + verb instead', ex: [['x', 'Would it be better using my version?'], ['ok', 'Would it be better **to use** my version?'], ['ok', 'We need **to move** it. / I want **to rename** it.']] },
+      ],
+      tip: '**Quick check:** if the word right before the verb is a preposition (*about, of, for, without*), use **-ing**. After *want / need / decide / would it be better*, use **to + verb**.' },
+    { term: 'Infinitive', q: 'infinitive',
+      def: 'An **infinitive** is the base form of a verb, usually with **to**: *to move*, *to rename*. Without *to* it\'s the **bare infinitive** (base form): *move*, *rename*. Use it for purpose, after certain verbs and adjectives, and after modals.',
+      rules: [
+        { title: 'After want, need, decide, plan, try, forget, remember', ex: [['x', 'We need move it.'], ['ok', 'We need **to move** it.'], ['ok', 'I forgot **to set** the flag.']] },
+        { title: 'After "it\'s + adjective" and "would it be better / worth it"', ex: [['x', 'Would it be better move it to a shared file?'], ['ok', 'Would it be better **to move** it to a shared file?'], ['x', 'Does it necessary to append it?'], ['ok', 'Is it necessary **to append** it?']] },
+        { title: 'For purpose (= in order to)', ex: [['ok', 'Add a guard **to prevent** the crash.'], ['ok', 'Update X **to allow** Y.']] },
+        { title: 'Bare infinitive after modals and let / make / have', ex: [['x', 'Users must has the permission.'], ['ok', 'Users must **have** the permission.'], ['ok', 'Have `foo` **return** `null`. / Let me **review** it.']] },
+      ],
+      tip: '**Quick check:** after a modal (*can, must, would, should*) use the bare form, no *to*, no *-s*. **Watch the pairs:** forget **to** do = didn\'t do it; forget **doing** = don\'t remember having done it. *Suggest / avoid / worth* take **-ing**, not *to*.' },
+    { term: 'Transitive verb', q: 'transitive',
+      def: 'A *transitive** verb needs a **direct object* — something that receives the action: rename **it**, commit **the changes**. An **intransitive** verb has no object; to connect it to a thing you need a preposition: reply **to** me, look **at** this.',
+      rules: [
+        { title: 'Transitive: don\'t drop the object', ex: [['x', 'Add to the notes.'], ['ok', 'Add **it** to the notes.'], ['x', 'Could you rename to `bar`?'], ['ok', 'Could you rename **it** to `bar`?']] },
+        { title: 'Transitive verbs can be passive — use it when the thing is the subject', ex: [['x', 'Should the constant rename?'], ['ok', 'Should the constant **be renamed**?'], ['ok', 'Where is it **defined**?']] },
+        { title: 'Intransitive: add a preposition before the thing', ex: [['x', 'Reply me first.'], ['ok', 'Reply **to** me first.'], ['ok', 'Take a look **at** this.']] },
+        { title: 'Intransitive verbs can\'t take an object or be passive', ex: [['x', 'What will this change happen?'], ['ok', 'What **happens** if we change this?'], ['x', 'Remain the old version.'], ['ok', '**Keep** the old version.']] },
+      ],
+      tip: '**Quick check:** ask "…what?" right after the verb. *Rename what?* → it needs an object (transitive). *Reply what?* doesn\'t work → reply **to** someone (intransitive). Some verbs are both: *change it* / *it changed*.' },
+  ],
+  zh: [
+    { term: '動名詞（Gerund）', q: 'gerund',
+      def: '**動名詞**是「動詞 + **-ing**」當名詞用，表示「做這件事」：*renaming*、*moving*、*clicking*。長得像進行式（*is renaming*），但它佔的是名詞的位置：主詞、受詞，或介係詞後面。',
+      rules: [
+        { title: '接在特定動詞後：suggest、recommend、consider、avoid、mind、finish、keep', ex: [['x', 'Would you suggest rename `FOO_*`?'], ['ok', 'Would you suggest **renaming** `FOO_*`?'], ['ok', 'I\'d avoid **hardcoding** it.']] },
+        { title: '接在介係詞後：about、of、for、instead of、without、worth', ex: [['x', 'How about refactor it like this?'], ['ok', 'How about **refactoring** it like this?'], ['ok', 'Would it be worth **splitting** `Foo`?']] },
+        { title: '當句子的主詞', ex: [['x', 'Click the button can paste a query.'], ['ok', '**Clicking** the button pastes a query.']] },
+        { title: '對照：有些句型要接 to + 原形', ex: [['x', 'Would it be better using my version?'], ['ok', 'Would it be better **to use** my version?'], ['ok', 'We need **to move** it. / I want **to rename** it.']] },
+      ],
+      tip: '**快速判斷：**動詞前一個字是介係詞（*about、of、for、without*）就用 **-ing**；接在 *want / need / decide / would it be better* 後面用 **to + 原形**。' },
+    { term: '不定詞（Infinitive）', q: 'infinitive',
+      def: '**不定詞**是動詞原形，通常帶 **to**：*to move*、*to rename*。不帶 to 的叫**原形不定詞**：*move*、*rename*。用在表目的、特定動詞與形容詞後面，以及情態動詞後面。',
+      rules: [
+        { title: '接在 want、need、decide、plan、try、forget、remember 後', ex: [['x', 'We need move it.'], ['ok', 'We need **to move** it.'], ['ok', 'I forgot **to set** the flag.']] },
+        { title: '接在「it\'s + 形容詞」與「would it be better」後', ex: [['x', 'Would it be better move it to a shared file?'], ['ok', 'Would it be better **to move** it to a shared file?'], ['x', 'Does it necessary to append it?'], ['ok', 'Is it necessary **to append** it?']] },
+        { title: '表目的（= 為了）', ex: [['ok', 'Add a guard **to prevent** the crash.'], ['ok', 'Update X **to allow** Y.']] },
+        { title: '情態動詞與 let / make / have 後接原形', ex: [['x', 'Users must has the permission.'], ['ok', 'Users must **have** the permission.'], ['ok', 'Have `foo` **return** `null`. / Let me **review** it.']] },
+      ],
+      tip: '**快速判斷：**情態動詞（*can、must、would、should*）後面接原形，不加 *to*、不加 *-s*。**注意成對：**forget **to** do = 忘了去做；forget **doing** = 忘了做過。*Suggest / avoid / worth* 接 **-ing**，不接 *to*。' },
+    { term: '及物動詞（Transitive verb）', q: 'transitive',
+      def: '**及物動詞**後面一定要有**受詞**（承受動作的東西）：rename **it**、commit **the changes**。**不及物動詞**沒有受詞，要接東西得先加介係詞：reply **to** me、look **at** this。',
+      rules: [
+        { title: '及物：受詞不能省', ex: [['x', 'Add to the notes.'], ['ok', 'Add **it** to the notes.'], ['x', 'Could you rename to `bar`?'], ['ok', 'Could you rename **it** to `bar`?']] },
+        { title: '及物動詞可以用被動——主詞是「被做的東西」時用', ex: [['x', 'Should the constant rename?'], ['ok', 'Should the constant **be renamed**?'], ['ok', 'Where is it **defined**?']] },
+        { title: '不及物：東西前面要加介係詞', ex: [['x', 'Reply me first.'], ['ok', 'Reply **to** me first.'], ['ok', 'Take a look **at** this.']] },
+        { title: '不及物動詞不能接受詞、也不能用被動', ex: [['x', 'What will this change happen?'], ['ok', 'What **happens** if we change this?'], ['x', 'Remain the old version.'], ['ok', '**Keep** the old version.']] },
+      ],
+      tip: '**快速判斷：**在動詞後面問「…什麼？」。*Rename 什麼？* → 要受詞（及物）。*Reply 什麼？* 不通 → reply **to** 某人（不及物）。有些動詞兩種都行：*change it* / *it changed*。' },
+  ],
+};
+let MC = true;
+function rpRegex(find, wild = true, mc = MC) {
+  const FL = mc ? 'g' : 'gi';
+  if (!wild) return new RegExp(String(find).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), FL);
+  const parts = String(find).split('*').map(p => p.replace(/[.+?^${}()|[\]\\]/g, '\\$&'));
+  const WORD = '([\\w-]*(?:\\.[\\w-]+)*)', ANY = '([^\\n`]*?)';
+  const src = parts.reduce((acc, p, i) => i === 0 ? p : acc + ((i === parts.length - 1 && !p) || (i === 1 && !parts[0]) ? WORD : ANY) + p, '');
+  return new RegExp(src, FL);
+}
+function rpLoose(find, wild = true, mc = MC) {
+  const FL = mc ? 'g' : 'gi'; const SEP = '(?:\\*\\*|\x60)*';
+  const esc = ch => /[.*+?^$(){}|[\]\\]/.test(ch) ? '\\' + ch : (/\s/.test(ch) ? '\\s+' : ch);
+  const lo = s => Array.from(s).map(esc).join(SEP).split('\\s+' + SEP + '\\s+').join('\\s+');
+  if (!wild) return new RegExp(SEP + lo(String(find)) + SEP, FL);
+  const parts = String(find).split('*');
+  const WORD = '([\\w-]*(?:\\.[\\w-]+)*)', ANY = '([^\\n\x60]*?)';
+  const src = parts.reduce((acc, p, i) => i === 0 ? lo(p) : acc + SEP + ((i === parts.length - 1 && !p) || (i === 1 && !parts[0]) ? WORD : ANY) + SEP + lo(p), '');
+  return new RegExp(SEP + src + SEP, FL);
+}
+function rpBalance(s, re, toFn) {
+  let fixed = false;
+  const r = s.replace(re, (...a) => { const m = a[0], off = a[a.length - 2], whole = a[a.length - 1];
+    const inside = (m.match(/\*\*/g) || []).length; let out = toFn(a);
+    if (inside % 2) { const before = (whole.slice(0, off).match(/\*\*/g) || []).length; out = before % 2 ? '**' + out : out + '**'; }
+    if (inside % 2) fixed = true; return out; });
+  if (!fixed) return r;
+  const segs2 = r.split('**'); let o = segs2[0];
+  for (let i = 1; i < segs2.length; i++) { const t = segs2[i]; if (i % 2) { const lead = (t.match(/^\s+/) || [''])[0], trail = (t.match(/\s+$/) || [''])[0]; const core = t.slice(lead.length, t.length - trail.length); o += core ? lead + '**' + core + '**' + trail : t; } else o += t; }
+  return o;
+}
+function markIn(s, re) {
+  const parts = s.split(/(`[^`]*`|\*\*[^*]+\*\*)/);
+  return parts.map(p => (!p || p[0] === '`' || p.startsWith('**')) ? p : p.replace(new RegExp(re.source, re.flags), m => m.trim() ? '**' + m + '**' : m)).join('');
+}
+const MARK_TOK = { bold: '**', underline: '\u0002' };
+function markStyled(s, re, style) {
+  const tok = MARK_TOK[style] || '**';
+  const parts = String(s).split(/(`[^`]*`|\*\*[^*]+\*\*|\u0002[^\u0002]+\u0002)/);
+  return parts.map(p => (!p || p[0] === '`' || p.startsWith('**') || p[0] === '\u0002') ? p : p.replace(new RegExp(re.source, re.flags), m => m.trim() ? tok + m + tok : m)).join('');
+}
+function markPhrases(s, phrases, style) {
+  if (!phrases || !phrases.length) return s;
+  const tok = MARK_TOK[style] || '**';
+  let out = String(s);
+  for (const ph of phrases) {
+    const p = String(ph || '').trim(); if (!p) continue;
+    // match the phrase even when it spans existing ** / ` markers
+    const src = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+    const plain = out.replace(/\*\*|\u0002/g, '');
+    if (!new RegExp(src, 'i').test(plain)) continue;
+    out = markStyled(out, new RegExp('(?<![A-Za-z])' + src + '(?![A-Za-z])', 'i'), style);
+    if (!out.includes(tok)) { /* phrase overlapped bold text: underline the unbolded part only */ }
+  }
+  return out;
+}
+function grpMatch(e, p) {
+  const T = { o: String(e.o || ''), nat: (e.nat || []).join(' '), key: String(e.k || '') + ' ' + String(e.ken || '') };
+  for (const k in T) T[k] = T[k].replace(/\*\*|`|\u0002/g, '');
+  const t = (re, s) => { try { return new RegExp(re, 'i').test(s); } catch (_) { return false; } };
+  if (typeof p === 'string') return t(p, e.raw || '');
+  if (!p || typeof p !== 'object') return false;
+  return ['o', 'nat', 'key'].every(k => !p[k] || t(p[k], T[k])) && ['o', 'nat', 'key'].some(k => p[k]);
+}
+function remarkLine(line, phrase, clearSpan) {
+  const BT = '\x60';
+  const L = String(line); const plain = []; const bold = []; const code = []; let b = false, c = false;
+  for (let i = 0; i < L.length; i++) {
+    if (!c && L.startsWith('**', i)) { b = !b; i++; continue; }
+    if (L[i] === BT) c = !c;
+    plain.push(L[i]); bold.push(b); code.push(c || L[i] === BT);
+  }
+  const P = plain.join('');
+  const esc = s => s.replace(/[.*+?^$(){}|[\]\\]/g, ch => '\\' + ch);
+  let cleared = false;
+  if (clearSpan) { const cs = String(clearSpan).replace(/\s+/g, ' ').trim().toLowerCase(); const ci = P.replace(/\s+/g, ' ').toLowerCase().indexOf(cs); if (ci >= 0 && P.replace(/\s+/g, ' ') === P) { for (let k = ci; k < ci + cs.length; k++) if (bold[k]) { bold[k] = false; cleared = true; } } }
+  const words = String(phrase).split('**').join('').split(BT).join('').trim().split(/\s+/).filter(Boolean); if (!words.length) return line;
+  const pat = w => /^[A-Za-z]{3,}$/.test(w) ? esc(w.replace(/(ing|ed|es|s|e)$/i, '')) + "[A-Za-z']*" : esc(w);
+  const re = new RegExp('(?<![A-Za-z])' + words.map(pat).join('\\s+') + '(?![A-Za-z])', 'gi');
+  let m, hit = false;
+  while ((m = re.exec(P))) { const a = m.index, z = a + m[0].length; if (code.slice(a, z).some(Boolean)) continue;
+    let changed = false; for (let k = a; k < z; k++) if (!bold[k] && !/\s/.test(P[k])) changed = true;
+    if ((a > 0 && bold[a - 1] && !/\s/.test(P[a - 1])) || (z < P.length && bold[z] && !/\s/.test(P[z]))) changed = true;
+    if (a > 0 && /\s/.test(P[a - 1]) && bold[a - 1]) changed = true;
+    if (z < P.length && /\s/.test(P[z]) && bold[z]) changed = true;
+    if (!changed) continue; hit = true;
+    for (let k = a; k < z; k++) bold[k] = true;
+    if (a > 0 && /\s/.test(P[a - 1])) bold[a - 1] = false; if (z < P.length && /\s/.test(P[z])) bold[z] = false; }
+  if (!hit && !cleared) return line;
+  let out = '', on = false;
+  for (let k = 0; k < P.length; k++) { if (bold[k] !== on) { out += '**'; on = bold[k]; } out += P[k]; }
+  if (on) out += '**';
+  return out;
+}
+function autoMarkLine(line, keyText, leadPhrases, original) {
+  const BT = '\x60';
+  const L = String(line); const P = []; const code = []; let c = false;
+  for (let i = 0; i < L.length; i++) { if (!c && L.startsWith('**', i)) { i++; continue; } if (L[i] === BT) c = !c; P.push(L[i]); code.push(c || L[i] === BT); }
+  const S = P.join('');
+  const st = w => w.toLowerCase().replace(/(ing|ed|es|s|e)$/, '');
+  const words = []; const re = /[A-Za-z][A-Za-z'’-]*/g; let m;
+  while ((m = re.exec(S))) if (!code[m.index]) words.push({ a: m.index, z: m.index + m[0].length, w: m[0] });
+  const gap = (i, j) => /^\s+$/.test(S.slice(words[i].z, words[j].a));
+  const bold = new Array(S.length).fill(false); const lead = new Array(words.length).fill(false); const used = new Array(words.length).fill(false);
+  const W = t => (String(t).toLowerCase().match(/[a-z][a-z'’-]*/g) || []);
+  const seqAt = (ps, i) => i + ps.length <= words.length && ps.every((p, j) => st(words[i + j].w) === st(p) && (j === 0 || gap(i + j - 1, i + j)));
+  const mark = (i0, n, isLead) => { for (let j = 0; j < n; j++) { used[i0 + j] = true; if (isLead) lead[i0 + j] = true; } for (let k = words[i0].a; k < words[i0 + n - 1].z; k++) bold[k] = true; };
+  for (const ph of leadPhrases || []) { const ps = W(ph); if (!ps.length || ps.join(' ').length < 3) continue; for (let i = 0; i < words.length; i++) if (!used[i] && seqAt(ps, i)) mark(i, ps.length, true); }
+  const PH = /\s*(?:…|\.\.\.|\b[ABXYZ]\b|\bsth\b|\bsb\b|\bsomething\b)\s*/;
+  const terms = [];
+  for (const mm of String(keyText || '').matchAll(/\*\*([^*]+)\*\*/g)) { if (/[\u4e00-\u9fff]/.test(mm[1]) || mm[1].includes(BT)) continue;
+    for (const alt of mm[1].split(/\s*\/\s*/)) { const segsW = alt.split(PH).map(W).filter(x => x.length); if (segsW.length) terms.push(segsW); } }
+  terms.sort((a, b) => b.flat().length - a.flat().length);
+  for (const t of terms) {
+    for (let i = 0; i < words.length; i++) { if (!seqAt(t[0], i) || t[0].some((_, j) => used[i + j] && !lead[i + j])) continue;
+      const spans = [[i, t[0].length]]; let pos = i + t[0].length, ok = true;
+      for (let g = 1; g < t.length; g++) { let found = -1; for (let q = pos; q <= Math.min(words.length - t[g].length, pos + 6); q++) if (seqAt(t[g], q)) { found = q; break; } if (found < 0) { ok = false; break; } spans.push([found, t[g].length]); pos = found + t[g].length; }
+      if (!ok) continue;
+      if (t.length === 1 && t[0].length === 1 && /^(a|an|the|to|of|in|on|it|is)$/.test(t[0][0])) continue;
+      spans.forEach(([a, n]) => mark(a, n, spans.some(([a2, n2]) => lead.slice(a2, a2 + n2).some(Boolean)))); break; }
+  }
+  if (original != null) {
+    const ow = String(original).split('**').join('').split(BT).filter((_, i) => i % 2 === 0).join(' ').toLowerCase().match(/[a-z][a-z'’-]*/g) || [];
+    const orig = new Set(ow.map(st)); const ART = /^(a|an|the)$/i;
+    const diff = words.map((x, i) => !used[i] && !orig.has(st(x.w)));
+    const grp = new Array(words.length).fill(-1); let gN = 0;
+    for (let i = 0; i < words.length; i++) if (diff[i]) { let j = i; while (j + 1 < words.length && diff[j + 1] && gap(j, j + 1)) j++;
+      let a = i, z = j;
+      if (a <= z) { for (let k = words[a].a; k < words[z].z; k++) bold[k] = true; for (let q = a; q <= z; q++) { used[q] = true; grp[q] = gN; } gN++; }
+      i = j; }
+    for (let i = 0; i + 1 < words.length; i++) if (grp[i] >= 0 && grp[i + 1] >= 0 && grp[i] !== grp[i + 1]) for (let k = words[i].z; k < words[i + 1].a; k++) bold[k] = false;
+  }
+  for (let i = 0; i + 1 < words.length; i++) if (bold[words[i].a] && bold[words[i + 1].a] && lead[i] !== lead[i + 1]) for (let k = words[i].z; k < words[i + 1].a; k++) bold[k] = false;
+  let out = '', on = false;
+  for (let k = 0; k < S.length; k++) { const want = bold[k] && !code[k]; if (want !== on) { out += '**'; on = want; } out += S[k]; }
+  if (on) out += '**';
+  return out;
+}
+function rpFill(repl, groups) {
+  let i = 0;
+  return String(repl || '').replace(/\*/g, () => groups[Math.min(i++, groups.length - 1)] ?? '');
+}
+function splitKey(t) {
+  t = String(t || '');
+  if (t.includes('\n')) return t.split('\n').map(x => x.replace(/^\s*(?:[•-]|\*(?!\*))\s*/, '').trim()).filter(Boolean);
+  const out = []; let depth = 0, tick = false, start = 0;
+  const zhMode = /[\u4e00-\u9fff]/.test(t) && t.includes('；');
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (c === '`') tick = !tick;
+    if (tick) continue;
+    if ('（(「'.includes(c)) depth++;
+    else if ('）)」'.includes(c)) depth = Math.max(0, depth - 1);
+    else if (depth === 0) {
+      if (zhMode && c === '；') { out.push(t.slice(start, i)); start = i + 1; }
+      else if (!zhMode && (c === '.' || c === '?' || c === '!') && /\s/.test(t[i + 1] || '') && /[A-Z*"“「(]/.test(t[i + 2] || '') && !/\b(e\.g|i\.e|vs|etc)$/.test(t.slice(Math.max(0, i - 4), i))) { out.push(t.slice(start, i + 1)); start = i + 2; }
+    }
+  }
+  out.push(t.slice(start));
+  return out.map(x => x.trim().replace(/[；;]$/, '')).filter(Boolean);
+}
+const GROUP_COLS = ['oklch(0.87 0.12 85)', 'oklch(0.83 0.1 200)', 'oklch(0.84 0.11 140)', 'oklch(0.8 0.1 290)'];
+function keyTerms(k) {
+  const out = [];
+  for (const m of String(k || '').matchAll(/\*\*([^*]+)\*\*/g))
+    out.push(m[1].toLowerCase().split(/\s*\/\s*|\s*(?:…|\.\.\.)\s*|[^a-z'’\s-]+/).map(x => x.trim()).filter(x => /[a-z]/.test(x)));
+  return out;
+}
+function natSegs(line, terms, lead) {
+  let s = segs(line);
+  if (lead && /\binto\b/i.test(lead) && /\s·\s/.test(lead)) s = s.flatMap(x => { const m = x.w === '600' && x.ff === 'inherit' && x.t.match(/^(\s*)(into|to|onto)\s+(\S[\s\S]*)$/i); return m ? [{ ...x, t: m[1] + m[2] }, { ...x, t: ' ', w: '400' }, { ...x, t: m[3] }] : [x]; });
+  const norm = x => ' ' + String(x).toLowerCase().replace(/\b(a|an|the)\b/g, ' ').replace(/[^a-z'’\s-]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+  const GEN = /^(general|other|word choice|missing |wrong |fragments|active vs|part of speech|verb form|question structure|comma splice|subject|tense|redundant|tone|spelling)/i;
+  const leadParts = lead && !GEN.test(lead) ? String(lead).split(/\s*\/\s*|…|\.\.\./).map(norm).filter(p => p.trim()) : [];
+  const STOPW = /^(into|in|to|of|on|for|with|from|by|at|and|or|it|this|that|out|up|be|is|would|worth-ing|ing|x|y|a|an|the)$/;
+  const leadGroups = lead && !GEN.test(lead) ? String(lead).split(/\s+·\s+/).map(g => g.toLowerCase().replace(/[()]/g, ' ').split(/[^a-z'’-]+/).filter(w => w.length > 1 && !STOPW.test(w))).filter(g => g.length) : [];
+  const stem = w => w.replace(/(ing|ed|es|er|est|s)$/, '').replace(/e$/, '');
+  const leadOf = t => { const ws = norm(t).trim().split(' ').filter(Boolean);
+    for (let gi = 0; gi < leadGroups.length; gi++) if (leadGroups[gi].some(k => { const sk = stem(k); return sk.length >= 3 && ws.some(w => w === k || stem(w) === sk || w.startsWith(sk)); })) return gi;
+    return -1; };
+  const runs = [];
+  s.forEach((x, i) => { if (x.w === '600' && x.ff === 'inherit' && x.t.trim()) { const last = runs[runs.length - 1]; if (last && last.end === i - 1) { last.idx.push(i); last.end = i; } else runs.push({ idx: [i], end: i }); } });
+  let order = [];
+  const gs = runs.map(r => {
+    const t = r.idx.map(i => s[i].t).join(' ').toLowerCase().trim();
+    const lg = leadOf(t); if (lg >= 0) return -100 + lg;
+    if (leadGroups.length > 1 && /^(into|in|to|onto|out of|from)$/.test(t) && /\binto\b/i.test(lead)) return -100;
+    let g = /^(a|an|the|to|of|in|on|it|is|and|or)$/.test(t) ? -1 : terms.findIndex(parts => parts.some(p => p === t || p.includes(t) || t.includes(p)));
+    if (g < 0) g = 100 + runs.indexOf(r);
+    return g;
+  });
+  gs.forEach(g => { if (!order.includes(g)) order.push(g); });
+  const tis = runs.map(r => { const t = r.idx.map(i => s[i].t).join(' ').toLowerCase().trim(); if (/^(a|an|the|to|of|in|on|it|is|and|or)$/.test(t)) return -1; return terms.findIndex(parts => parts.some(p => p === t || p.includes(t) || t.includes(p))); });
+  runs.forEach((r, k) => { if (tis[k] >= 0) return; const t = r.idx.map(i => s[i].t).join(' ').toLowerCase().trim(); if (!/^(to|of|in|on|into|with|for|from)$/.test(t)) return;
+    for (let p = k - 1; p >= 0; p--) if (tis[p] >= 0) { if (terms[tis[p]].some(part => (' ' + part + ' ').includes(' ' + t + ' '))) tis[k] = tis[p]; break; } });
+  runs.forEach((r, k) => { if (tis[k] < 0) return; for (let q = 0; q < runs.length; q++) if (q !== k && tis[q] === tis[k] && gs[q] < gs[k]) gs[k] = gs[q]; });
+  const nLead = leadGroups.length;
+  const rest = []; gs.forEach(g => { if (g >= -50 && !rest.includes(g)) rest.push(g); });
+  const gid = gs.map(g => g < -50 ? g + 100 : nLead + rest.indexOf(g));
+  const PART = /^(out|up|off|back|down|away|over)( of| from)?$/i;
+  runs.forEach((r, k) => { if (k > 0 && PART.test(r.idx.map(i => s[i].t).join(' ').trim())) gid[k] = gid[k - 1]; });
+  const FN = /^(a|an|the)$/i;
+  const txt = r => r.idx.map(i => s[i].t).join(' ').trim();
+  const gapPlain = (r1, r2) => s.slice(r1.end + 1, r2.idx[0]).every(x => /^\s*(?:(?:a|an|the)\s+)?$/i.test(x.t));
+  for (let k = runs.length - 2; k >= 0; k--) if (FN.test(txt(runs[k])) && gs[k + 1] < -50 && gapPlain(runs[k], runs[k + 1])) { gid[k] = gid[k + 1]; gs[k] = gs[k + 1]; }
+  if (!gs.length) return s;
+  const shift = nLead === 1 && !gs.some(g => g < -50);
+  const colOf = g => { if (shift) g = g - 1; if (g < nLead || !nLead) return GROUP_COLS[((g % GROUP_COLS.length) + GROUP_COLS.length) % GROUP_COLS.length]; const free = GROUP_COLS.length - nLead; return free > 0 ? GROUP_COLS[nLead + (g - nLead) % free] : ACC; };
+  runs.forEach((r, k) => r.idx.forEach(i => { if (s[i].bg === 'transparent') s[i] = { ...s[i], col: colOf(gid[k]) }; }));
+  return s;
+}
+class Component extends DCLogic {
+  state = { data: null, cat: 'all', ser: null, q: '', mode: null, lang: null, limit: PAGE, revealed: {}, closed: {} };
+  componentDidMount() {
+    this._onSel = () => { const s = window.getSelection(); const t = s ? String(s).replace(/\s+/g, ' ').trim() : '';
+      const n = s && s.anchorNode; const el = n && (n.nodeType === 1 ? n : n.parentElement);
+      const ok = t && t.length <= 60 && el && el.closest && el.closest('article') && !el.closest('input,textarea');
+      const inArt = t && el && el.closest && el.closest('article') && !el.closest('input,textarea');
+      if (inArt) { const art = el.closest('article'); this._selId = art && art.getAttribute('data-eid'); const ln = el.closest('[data-ni]') || el.closest('[data-ki]'); this._selKind = ln && ln.hasAttribute('data-ki') ? 'key' : 'nat'; this._selNi = ln ? +ln.getAttribute(this._selKind === 'key' ? 'data-ki' : 'data-ni') : null;
+        try { const rc = s.getRangeAt(0).getBoundingClientRect(); const canMove = !!ln && this._selNi > 0; const canMark = !!ok; const BW = (canMark ? 80 : 0) + (canMove ? 200 : 0) + 12; const fits = rc.right + 10 + BW <= window.innerWidth - 8;
+          if (this._mouseDown) { if (this.state.selBar) this.setState({ selBar: null }); } else this.setState({ selBar: (canMove || canMark) ? (fits ? { x: rc.right + 10, y: rc.top + rc.height / 2, tf: 'translateY(-50%)', canMove, canMark } : { x: Math.max(8, Math.min(rc.right, window.innerWidth - 8) - BW), y: rc.top > 52 ? rc.top - 8 : rc.bottom + 8, tf: rc.top > 52 ? 'translateY(-100%)' : 'none', canMove, canMark }) : null }); } catch (_) {} }
+      else if (!t) { if (this.state.selBar && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-selbar]'))) this.setState({ selBar: null }); }
+      const v = ok ? t : ''; if (v || !document.activeElement || document.activeElement.tagName !== 'BUTTON') { this._sel = v; if ((this.state.selText || '') !== v) this.setState({ selText: v }); } };
+    document.addEventListener('selectionchange', this._onSel);
+    this._onDown = ev => { if (ev.target && ev.target.closest && ev.target.closest('[data-selbar]')) return; this._mouseDown = true; };
+    this._onUp = () => { if (!this._mouseDown) return; this._mouseDown = false; setTimeout(() => this._onSel && this._onSel(), 0); };
+    document.addEventListener('mousedown', this._onDown); document.addEventListener('mouseup', this._onUp);
+    try { const mc = localStorage.getItem('pn-match-case'); if (mc === '0') { MC = false; this.setState({ matchCase: false }); } } catch (_) {}
+    try { if (localStorage.getItem('pn-nav-hidden')) this.setState({ navHidden: true }); const ns = localStorage.getItem('pn-nav-sort'); if (ns) this.setState({ navSort: ns }); } catch (_) {}
+    Promise.all([fetch('phrasing-data.json').then(r => r.json()), fetch('phrasing-en.json').then(r => r.ok ? r.json() : {}).catch(() => ({}))]).then(([data, en]) => {
+      data.forEach(c => c.series.forEach(s => s.entries.forEach(e => {
+        e.cat = c; e.ser = s;
+        const t = en[e.id];
+        if (t) { e.ken = t.k; if (t.ex) e.exen = t.ex; }
+        e.orig = { o: e.o, nat: e.nat.slice(), k: e.k, ken: e.ken, ex: e.ex, exen: e.exen };
+      })));
+      const rpWild = true; let rpNL = false; try { rpNL = localStorage.getItem('phrasing-replace-nl') === '1'; } catch (_) {}
+      let rules = []; try { rules = JSON.parse(localStorage.getItem('phrasing-replace-rules') || '[]'); } catch (_) {}
+      data.forEach(c => c.series.forEach(s => s.entries.forEach(e => { e.n0 = e.n; e.orig.k0 = e.orig.k; e.orig.ken0 = e.orig.ken; })));
+      let renum = null; try { renum = JSON.parse(localStorage.getItem('pn-renum') || 'null'); } catch (_) {}
+      if (renum) this.applyRenum(data, renum);
+      this.setState({ data, rules, rpWild, rpNL, renumbered: !!renum }, () => this.applyRules());
+    });
+  }
+  applyRules() {
+    const { data, rules = [] } = this.state; if (!data) return;
+    MC = this.state.matchCase !== false;
+    const v2 = rules.filter(r => r.v2);
+    const res = rules.filter(r => !r.group && !r.v2 && !r.remark && !r.autoMark && !r.moveLine).flatMap(r => r.nlEdits ? r.nlEdits.map(x => { try { return [new RegExp(x.pattern, 'g'), x.repl || '', 'nl', false]; } catch (_) { return null; } }).filter(Boolean) : r.mark && r.patterns ? r.patterns.map(p => { try { return [new RegExp(p, 'gi'), '', false, true]; } catch (_) { return null; } }).filter(Boolean) : [[r.mark ? rpRegex(r.find, r.wild !== false, r.mc !== false) : rpLoose(r.find, r.wild !== false, r.mc !== false), r.repl || '', r.wild !== false, !!r.mark]]);
+    const rep = s => { if (typeof s !== 'string') return s; for (const [re, to, w, mk] of res) s = mk ? markIn(s, re) : w === 'nl' ? s.replace(re, to) : w ? rpBalance(s, re, a => rpFill(to, a.slice(1, a.length - 2))) : rpBalance(s, re, () => to); return s; };
+    const repEx = ex => ex && ex.map(x => ({ ...x, items: x.items.map(rep) }));
+    let hits = 0;
+    data.forEach(c => c.series.forEach(s => s.entries.forEach(e => {
+      const o = e.orig;
+      e.o = rep(o.o); e.nat = o.nat.map(rep); e.k = rep(o.k); e.ken = rep(o.ken); e.ex = repEx(o.ex) || []; e.exen = repEx(o.exen);
+      for (const r of rules) if (r.moveLine && r.moveLine.id === e.id) { const { from, to, kind, lang } = r.moveLine;
+        if (kind === 'key') { const fld = lang === 'zh' || !e.ken ? 'k' : 'ken'; const ls = splitKey(e[fld]); if (from > 0 && from < ls.length) { const [l] = ls.splice(from, 1); ls.splice(Math.max(0, to), 0, l); e[fld] = ls.join('\n'); } }
+        else if (from > 0 && from < e.nat.length) { const [l] = e.nat.splice(from, 1); e.nat.splice(Math.max(0, to), 0, l); } }
+      for (const r of rules) if (r.remark) e.nat = e.nat.map(t => remarkLine(t, r.remark, r.clearIn === e.id ? r.clear : null));
+      for (const r of rules) if (r.autoMark && e.ser && (e.ser.title === r.series || (e.ser.aliases || []).includes(r.series))) e.nat = e.nat.map(t => autoMarkLine(t, (e.orig.k0 || e.k) + ' ' + (e.orig.ken0 || e.ken || ''), r.lead, e.o));
+      for (const r of v2) {
+        const sc = r.scope || ['native'];
+        const f = t => typeof t !== 'string' ? t : r.perEntry ? markPhrases(t, r.perEntry[e.id], r.style)
+          : (r.patterns || []).reduce((acc, p) => { try { return markStyled(acc, new RegExp(p, 'gi'), r.style); } catch (_) { return acc; } }, t);
+        if (sc.includes('native')) e.nat = e.nat.map(f);
+        if (sc.includes('original')) e.o = f(e.o);
+        if (sc.includes('key')) { e.k = f(e.k); e.ken = f(e.ken); }
+        if (sc.includes('alternatives')) { e.ex = (e.ex || []).map(x => ({ ...x, items: x.items.map(f) })); if (e.exen) e.exen = e.exen.map(x => ({ ...x, items: x.items.map(f) })); }
+      }
+      e.hay = [e.o, ...e.nat, e.k, e.ken || '', ...e.ex.flatMap(x => x.items), ...(e.exen || []).flatMap(x => x.items)].join(' ').replace(/\*\*|`|\u0002/g, '').toLowerCase();
+      e.raw = [e.o, ...e.nat, e.k, e.ken || '', ...e.ex.flatMap(x => x.items), ...(e.exen || []).flatMap(x => x.items)].join(' ').replace(/\*\*|`|\u0002/g, '');
+      e.natRaw = e.nat.join(' ').replace(/\*\*|`|\u0002/g, ''); e.natHay = e.natRaw.toLowerCase();
+    })));
+    if (!this.origSeries) this.origSeries = data.map(c => c.series.map(s => ({ s, entries: s.entries.slice() })));
+    data.forEach((c, ci) => { c.series = this.origSeries[ci].map(o => { o.s.entries = o.entries.slice(); o.entries.forEach(e => { e.cat = c; e.ser = o.s; }); return o.s; }); });
+    for (const r of rules) { if (!r.group) continue;
+      const hits = data.flatMap(c => c.series.flatMap(s => s.entries)).filter(e => (r.patterns || []).some(p => grpMatch(e, p)) && !(r.exclude || []).includes(e.id));
+      if (!hits.length) continue;
+      const cnt = {}; hits.forEach(e => { if (e.cat.id !== 'session') cnt[e.cat.id] = (cnt[e.cat.id] || 0) + 1; });
+      const tid = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0] || hits[0].cat.id;
+      const c = data.find(x => x.id === tid);
+      const title = r.title || r.find;
+      let s = null; let tc = c;
+      for (const cc of data) { const hit = cc.series.find(x => x.title === title || (x.aliases || []).includes(title)); if (hit) { s = hit; tc = cc; break; } }
+      if (s && s.excludeIds) { const ex = new Set(s.excludeIds); for (let i = hits.length - 1; i >= 0; i--) if (ex.has(hits[i].id)) hits.splice(i, 1); }
+      if (!s) { s = { title, desc: '', notes: [], entries: [], grp: true }; c.series.push(s); }
+      hits.forEach(e => { data.forEach(cc => cc.series.forEach(ss => { if (ss !== s) ss.entries = ss.entries.filter(x => x !== e); })); if (!s.entries.includes(e)) s.entries.push(e); e.cat = tc; e.ser = s; });
+      data.forEach(cc => { cc.series = cc.series.filter(ss => ss.entries.length || ss.notes.length); });
+    }
+    try { localStorage.setItem('phrasing-replace-rules', JSON.stringify(rules)); } catch (_) {}
+    this.forceUpdate();
+  }
+  moveLine(to, zh) {
+    const id = this._selId, from = this._selNi; if (id == null || from == null || from <= 0) return;
+    const eid = isNaN(+id) ? id : +id; const dest = to === 'top' ? 0 : from - 1;
+    this._sel = ''; try { window.getSelection().removeAllRanges(); } catch (_) {}
+    const kind = this._selKind || 'nat'; const lang = this.state.lang === 'zh' ? 'zh' : 'en';
+    this.setState(s => ({ selBar: null, selText: '', rpLast: true, rules: [...(s.rules || []), { moveLine: { id: eid, from, to: dest, kind, lang }, find: 'move' }],
+      rpMsg: to === 'top' ? (zh ? '已置頂這一行' : 'Moved the line to the top') : (zh ? '已上移一行' : 'Moved the line up') }), () => this.applyRules());
+  }
+  remark(phrase, zh) {
+    const { data } = this.state; if (!data) return;
+    const sel = phrase; let clearIn = null;
+    const eid = this._selId; const ent = eid != null && data.flatMap(c => c.series.flatMap(s => s.entries)).find(e => String(e.id) === String(eid));
+    if (ent && ent.ser) {
+      const norm = x => ' ' + String(x).toLowerCase().replace(/[^a-z'\s-]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+      const st = w => w.replace(/(ing|ed|es|s|e)$/, '');
+      const inSel = p => { const ws = norm(p).trim().split(' ').filter(Boolean); if (!ws.length || ws.join(' ').length < 3) return false; const sw = norm(sel).trim().split(' ').map(st); for (let i = 0; i + ws.length <= sw.length; i++) if (ws.every((w, j) => sw[i + j] === st(w))) return true; return false; };
+      const parts = s => String(s || '').split(/\s*·\s*|\s*\/\s*/).map(x => x.replace(/\b[XY]\b/g, ' ').replace(/\s+/g, ' ').trim()).filter(x => x.split(' ').length > 1 || x.length > 3);
+      const tc = parts(ent.ser.title).filter(inSel);
+      const cand = (tc.length ? tc : parts(ent.ser.keys).filter(inSel)).sort((a, b) => b.length - a.length);
+      if (cand.length && norm(cand[0]).trim() !== norm(sel).trim()) { phrase = cand[0]; clearIn = ent.id; }
+      const leads = parts(ent.ser.title);
+      const series = ent.ser.title; let n2 = 0;
+      data.forEach(c => c.series.forEach(s => { if (s !== ent.ser) return; s.entries.forEach(e => e.nat.forEach(t => { if (autoMarkLine(t, (e.orig.k0 || e.k) + ' ' + (e.orig.ken0 || e.ken || ''), leads, e.o) !== t) n2++; })); }));
+      this._sel = ''; try { window.getSelection().removeAllRanges(); } catch (_) {}
+      this.setState(s => ({ selText: '', rpLast: true, rules: [...(s.rules || []), { autoMark: true, series, lead: leads, find: series, mark: true }],
+        rpMsg: zh ? `已依重點重新標記「${series}」系列 ${n2} 行` : `Re-marked ${n2} lines in "${series}" from the key points` }), () => this.applyRules());
+      return;
+    }
+    let n = 0; data.forEach(c => c.series.forEach(s => s.entries.forEach(e => e.nat.forEach(t => { if (remarkLine(t, phrase, clearIn === e.id ? sel : null) !== t) n++; }))));
+    this._sel = ''; try { window.getSelection().removeAllRanges(); } catch (_) {}
+    if (!n) { this.setState({ selText: '', rpMsg: zh ? `「${phrase}」已全部標記` : `"${phrase}" is already marked everywhere` }); return; }
+    this.setState(s => ({ selText: '', rpLast: true, rules: [...(s.rules || []), { remark: phrase, find: phrase, mark: true, clear: clearIn != null ? sel : null, clearIn }],
+      rpMsg: zh ? `已重新標記「${phrase}」，共 ${n} 行` : `Re-marked "${phrase}" in ${n} ${n === 1 ? 'line' : 'lines'}` }), () => this.applyRules());
+  }
+  refineText(kind) {
+    const fb = (this.state[kind + 'Refine'] || '').trim(); const prev = this.state[kind + 'SugPrev'] || [];
+    if (!fb) return '';
+    return 'Previous suggestions (the user was not satisfied):\n' + prev.map(x => '- ' + x.text).join('\n') + '\nUser feedback (may be Chinese): "' + fb + '"\nFollow this feedback closely and give different suggestions.\n\n';
+  }
+  ask(key, opts) {
+    const tok = this._tok || (this._tok = {}); const my = tok[key] = (tok[key] || 0) + 1;
+    const cancel = this._cancel || (this._cancel = {});
+    return new Promise((res, rej) => { cancel[key] = () => rej({ stopped: true });
+      window.claude.complete(opts).then(v => tok[key] === my ? res(v) : rej({ stopped: true }), err => tok[key] === my ? rej(err) : rej({ stopped: true })); });
+  }
+  stopOp(key, busy, zh) {
+    const tok = this._tok || (this._tok = {}); tok[key] = (tok[key] || 0) + 1;
+    if (this._cancel && this._cancel[key]) this._cancel[key]();
+    this.setState({ [busy]: false, rpMsg: zh ? '已停止' : 'Stopped' });
+  }
+  async suggest(zh) {
+    const f = (this.state.rpFind || '').trim(); if (!f || this.state.rpBusy) return;
+    const ctx = []; const { data } = this.state;
+    if (data) data.forEach(c => c.series.forEach(s => s.entries.forEach(e => e.nat.forEach(n => { if (ctx.length < 8 && rpRegex(f, this.state.rpWild !== false).test(n)) ctx.push(n.replace(/\*\*/g, '')); }))));
+    this.setState({ rpBusy: true, rpSug: [], rpMsg: '' });
+    try {
+      const out = await this.ask('sug', { max_tokens: 600,
+        system: 'You are a native English editor helping a Taiwanese software engineer write natural, idiomatic English in code-review and chat messages. Reply with JSON only.',
+        messages: [{ role: 'user', content:
+`Phrase to replace: "${f}"
+${this.state.rpRepl ? `My draft replacement: "${this.state.rpRepl}"\n` : ''}Sentences where it appears:
+${ctx.length ? ctx.map(x => '- ' + x).join('\n') : '(none)'}
+
+${this.refineText('rp')}Suggest up to 3 better replacements that a native speaker would use and that fit these sentences. Return a JSON array: [{"text":"replacement","note":"one short reason, written in ${zh ? 'Traditional Chinese' : 'English'}"}]` }] });
+      const m = out.match(/\[[\s\S]*\]/); const arr = m ? JSON.parse(m[0]) : [];
+      this.setState({ rpBusy: false, rpRefine: '', rpSug: arr.filter(x => x && x.text).slice(0, 3),
+        rpMsg: arr.length ? '' : (zh ? '沒有建議' : 'No suggestions') });
+    } catch (err) { if (err && err.stopped) return; this.setState({ rpBusy: false, rpMsg: zh ? '建議失敗，請再試一次' : 'Couldn\'t get suggestions — try again' }); }
+  }
+  async groupNL(zh) {
+    const text = (this.state.gpFind || '').trim(); const { data } = this.state;
+    if (!text || !data || this.state.gpBusy) return;
+    this.setState({ gpBusy: true, rpMsg: '' });
+    try {
+      const sample = data.flatMap(c => c.series.flatMap(s => s.entries)).filter((_, i) => i % 3 === 0).slice(0, 160).map(e => `- O: ${String(e.o).replace(/\*\*|\`/g, '').slice(0, 70)} → N: ${(e.nat[0] || '').replace(/\*\*|\`/g, '').slice(0, 70)}`).join('\n');
+      const out = await this.ask('gp', { max_tokens: 500,
+        system: 'You turn a natural-language grouping request into search patterns over English phrasing notes. Reply with JSON only.',
+        messages: [{ role: 'user', content: `Request (may be Chinese or English): "${text}"
+
+Each entry has O (the learner's original, flawed sentence), N (corrected native-speaker lines) and KEY (key points). Sample:
+${sample}
+
+Return {"title":"short series title, e.g. also → too","patterns":[{"o":"regex","nat":"regex","key":"regex"}, ...]}.
+Each pattern is an object; every field it sets must match (case-insensitive) in that part of the entry; omit fields you don't need. To find a correction from X to Y, test X in "o" and Y in "nat" — e.g. {"o":"\\balso\\b","nat":"\\b(too|as well)\\b"}. Never search for words that describe the request itself (corrected, changed, modified). Use 1-4 precise patterns with word boundaries and inflections.` }] });
+      const m = out.match(/\{[\s\S]*\}/); const j = m ? JSON.parse(m[0]) : null;
+      const pats = (j && Array.isArray(j.patterns) ? j.patterns : []).filter(p => { try { if (typeof p === 'string') new RegExp(p); else ['o', 'nat', 'key'].forEach(k => p[k] && new RegExp(p[k])); return true; } catch (_) { return false; } });
+      if (!pats.length) { this.setState({ gpBusy: false, rpMsg: zh ? '無法解析，請換個說法' : "Couldn't interpret that — try rephrasing" }); return; }
+      const n = data.flatMap(c => c.series.flatMap(s => s.entries)).filter(e => pats.some(p => grpMatch(e, p))).length;
+      if (!n) { this.setState({ gpBusy: false, rpMsg: zh ? '沒有符合的條目' : 'No matching entries' }); return; }
+      const title = (j.title || text).trim();
+      this.setState(s => ({ gpBusy: false, gpFind: '', rpLast: true, rules: [...(s.rules || []), { group: true, find: text, title, patterns: pats }],
+        rpMsg: zh ? `已將 ${n} 條歸為「${title}」` : `Grouped ${n} ${n === 1 ? 'entry' : 'entries'} as "${title}"` }), () => { this.applyRules();
+        const st = this.state.data; for (const c of st) { const i = c.series.findIndex(s => s.title === title || (s.aliases || []).includes(title)); if (i >= 0) { this.setState({ navSort: 'cat', q: '' }); this.pick(c.id, i); break; } } });
+    } catch (err) { if (err && err.stopped) return; this.setState({ gpBusy: false, rpMsg: zh ? '歸組失敗，請再試一次' : 'Grouping failed — try again' }); }
+  }
+  async markNL(zh) {
+    const text = (this.state.mkFind || '').trim(); const { data } = this.state;
+    if (!text || !data || this.state.mkBusy) return;
+    this.setState({ mkBusy: true, rpMsg: zh ? '理解需求中…' : 'Reading your request…' });
+    try {
+      const plan0 = await this.ask('mk', { max_tokens: 300,
+        system: 'You interpret a request (Chinese or English) for visually marking text in an English-phrasing study page. Reply with JSON only.',
+        messages: [{ role: 'user', content: `Request: "${text}"
+
+Each entry has: ORIGINAL (the learner's flawed sentence), NATIVE (corrected native-speaker lines, where **x** is already bold), KEY (key points).
+Decide:
+- style: "bold" or "underline" (畫底線/底線 = underline; 粗體/mark/標記 alone = bold)
+- scope: array of "native","original","key","alternatives" (母語者/native = native; 原句 = original; 重點 = key). Default ["native"].
+- kind: "pattern" if a fixed regex can find the targets (e.g. a specific word or part of speech list), or "semantic" if each entry must be judged individually (e.g. "what was corrected", "words that differ from the original", "not already bolded").
+- instruction: for "semantic", a precise one-sentence instruction for picking exact substrings of the scope text in ONE entry.
+- patterns: for "pattern", 1-6 JS regex sources (case-insensitive, word boundaries).
+Return {"title":"short label","style":"…","scope":[…],"kind":"…","instruction":"…","patterns":[…]}` }] });
+      const pm = plan0.match(/\{[\s\S]*\}/); const plan = pm ? JSON.parse(pm[0]) : null;
+      if (plan && plan.kind === 'semantic') { await this.markSemantic(zh, text, plan); return; }
+      if (plan && plan.style && plan.style !== 'bold' && Array.isArray(plan.patterns) && plan.patterns.length) {
+        const pats = plan.patterns.filter(p => { try { new RegExp(p, 'gi'); return true; } catch (_) { return false; } });
+        if (pats.length) {
+          const title = (plan.title || text).trim();
+          this.setState(s => ({ mkBusy: false, mkFind: '', rpLast: true, rules: [...(s.rules || []), { mark: true, v2: true, find: text, title, style: plan.style, scope: plan.scope || ['native'], patterns: pats }],
+            rpMsg: zh ? `已套用「${title}」` : `Applied "${title}"` }), () => this.applyRules());
+          return;
+        }
+      }
+      const sample = data.flatMap(c => c.series.flatMap(s => s.entries)).slice(0, 300).map(e => '- ' + (e.nat[0] || '').replace(/\*\*|`/g, '').slice(0, 90)).join('\n');
+      const out = await this.ask('mk', { max_tokens: 500,
+        system: 'You turn a natural-language request into regex patterns that select words/phrases to bold in English phrasing notes. Reply with JSON only.',
+        messages: [{ role: 'user', content: `Request (may be Chinese or English): "${text}"
+
+Sample native-speaker lines:
+${sample}
+
+Return {"title":"short label","patterns":["JavaScript regex source", ...]}.
+Each pattern's full match is what gets bolded, so match only the exact words to bold (use lookarounds for context). Tested case-insensitively. 1-6 precise patterns with word boundaries.` }] });
+      const m = out.match(/\{[\s\S]*\}/); const j = m ? JSON.parse(m[0]) : null;
+      const pats = (j && Array.isArray(j.patterns) ? j.patterns : []).filter(p => { try { new RegExp(p, 'gi'); return true; } catch (_) { return false; } });
+      if (!pats.length) { this.setState({ mkBusy: false, rpMsg: zh ? '無法解析，請換個說法' : "Couldn't interpret that — try rephrasing" }); return; }
+      let n = 0; data.forEach(c => c.series.forEach(s => s.entries.forEach(e => [e.o, ...e.nat, e.k, e.ken || ''].forEach(t => { const plain = String(t).split(/(`[^`]*`|\*\*[^*]+\*\*)/).filter(p => p && p[0] !== '`' && !p.startsWith('**')).join(' '); pats.forEach(p => { n += (plain.match(new RegExp(p, 'gi')) || []).length; }); }))));
+      if (!n) { this.setState({ mkBusy: false, rpMsg: zh ? '沒有符合的內容' : 'Nothing to mark' }); return; }
+      const title = (j.title || text).trim();
+      this.setState(s => ({ mkBusy: false, mkFind: '', rpLast: true, rules: [...(s.rules || []), { mark: true, find: text, title, patterns: pats }],
+        rpMsg: zh ? `已標記 ${n} 處「${title}」` : `Marked ${n} ${n === 1 ? 'match' : 'matches'} for "${title}"` }), () => this.applyRules());
+    } catch (err) { if (err && err.stopped) return; this.setState({ mkBusy: false, rpMsg: zh ? '標記失敗，請再試一次' : 'Marking failed — try again' }); }
+  }
+  async markSemantic(zh, text, plan) {
+    const { data } = this.state;
+    const sc = Array.isArray(plan.scope) && plan.scope.length ? plan.scope : ['native'];
+    const all = data.flatMap(c => c.series.flatMap(s => s.entries));
+    const per = {}; let n = 0; const B = 30;
+    const field = e => sc.includes('native') ? e.nat.join(' | ') : sc.includes('original') ? e.o : (zh ? e.k : (e.ken || e.k));
+    for (let i = 0; i < all.length; i += B) {
+      const batch = all.slice(i, i + B);
+      this.setState({ rpMsg: (zh ? '逐條分析中… ' : 'Checking entries… ') + Math.min(i + B, all.length) + ' / ' + all.length });
+      const body = batch.map(e => `#${e.id}\nORIGINAL: ${String(e.o).replace(/\*\*/g, '')}\nTEXT: ${field(e)}\nKEY: ${String(e.ken || e.k).replace(/\n/g, ' ').slice(0, 260)}`).join('\n\n');
+      try {
+        const out = await this.ask('mk', { max_tokens: 1800,
+          system: 'You select exact substrings to visually mark in English study notes. Reply with JSON only.',
+          messages: [{ role: 'user', content: `Task: ${plan.instruction || text}
+In TEXT, **x** means already bold and \`x\` is code. Return only substrings copied exactly from TEXT (without the ** or \` markers), each 1-6 words, never inside code, never text that is already bold. Skip entries with nothing to mark.
+
+${body}
+
+Return {"<id>":["substring", ...], ...}` }] });
+        const m = out.match(/\{[\s\S]*\}/); const j = m ? JSON.parse(m[0]) : {};
+        for (const [id, arr] of Object.entries(j)) if (Array.isArray(arr) && arr.length) { per[id.replace('#', '')] = arr.map(String); n += arr.length; }
+      } catch (_) { if (_ && _.stopped) return; }
+    }
+    if (!n) { this.setState({ mkBusy: false, rpMsg: zh ? '沒有符合的內容' : 'Nothing to mark' }); return; }
+    const title = (plan.title || text).trim();
+    this.setState(s => ({ mkBusy: false, mkFind: '', rpLast: true, rules: [...(s.rules || []), { mark: true, v2: true, find: text, title, style: plan.style || 'underline', scope: sc, perEntry: per }],
+      rpMsg: zh ? `已在 ${Object.keys(per).length} 條標記 ${n} 處「${title}」` : `Marked ${n} spots in ${Object.keys(per).length} entries — "${title}"` }), () => this.applyRules());
+  }
+  async suggestMark(zh) {
+    if (this.state.mkSugBusy) return;
+    const list = (this.cur || []).slice(0, 25);
+    if (!list.length) return;
+    this.setState({ mkSugBusy: true, mkSug: [], rpMsg: '' });
+    try {
+      const ctx = list.map(e => `- NATIVE: ${e.nat.join(' | ')}\n  KEY: ${(zh ? e.k : (e.ken || e.k)).slice(0, 220)}`).join('\n');
+      const draft = (this.state.mkFind || '').trim();
+      const out = await this.ask('mksug', { max_tokens: 600,
+        system: 'You help a Taiwanese engineer study native English phrasing. Text in **double asterisks** is already bold. Reply with JSON only.',
+        messages: [{ role: 'user', content: `These entries are on screen:
+${ctx}
+${draft ? `\nMy draft instruction: "${draft}"\n` : ''}
+${this.refineText('mk')}Suggest up to 3 short instructions for what to bold in the native lines — key phrases the key points teach that are NOT bold yet (collocations, prepositions, verb patterns). Return [{"text":"instruction, written in ${zh ? 'Traditional Chinese (keep English phrases in English)' : 'English'}","note":"one short reason in ${zh ? 'Traditional Chinese' : 'English'}"}].` }] });
+      const m = out.match(/\[[\s\S]*\]/); const arr = m ? JSON.parse(m[0]) : [];
+      this.setState({ mkSugBusy: false, mkRefine: '', mkSug: arr.filter(x => x && x.text).slice(0, 3), rpMsg: arr.length ? '' : (zh ? '沒有建議' : 'No suggestions') });
+    } catch (err) { if (err && err.stopped) return; this.setState({ mkSugBusy: false, rpMsg: zh ? '建議失敗，請再試一次' : "Couldn't get suggestions — try again" }); }
+  }
+  async replaceNL(zh) {
+    const text = (this.state.rpFind || '').trim(); const repl = (this.state.rpRepl || '').trim(); const { data } = this.state;
+    if (!text || !data || this.state.rpNLBusy) return;
+    this.setState({ rpNLBusy: true, rpMsg: zh ? '理解需求中…' : 'Reading your request…' });
+    try {
+      const sample = data.flatMap(c => c.series.flatMap(s => s.entries)).slice(0, 300).map(e => '- ' + (e.nat[0] || '').replace(/\*\*|`/g, '').slice(0, 90)).join('\n');
+      const out = await this.ask('rnl', { max_tokens: 600,
+        system: 'You turn a natural-language find-and-replace request into precise JavaScript regex edits over English study notes. Reply with JSON only.',
+        messages: [{ role: 'user', content: `Request (Chinese or English): "${text}"${repl ? `\nReplace with: "${repl}"` : ''}
+
+Sample lines:
+${sample}
+
+Text may contain **bold** and \`code\` markers; never match across or remove them.
+Return {"title":"short label","edits":[{"pattern":"JS regex source (case-sensitive, use word boundaries)","repl":"replacement, may use $1 groups"}]} with 1-6 edits.` }] });
+      const m = out.match(/\{[\s\S]*\}/); const j = m ? JSON.parse(m[0]) : null;
+      const edits = (j && Array.isArray(j.edits) ? j.edits : []).filter(x => { try { new RegExp(x.pattern, 'g'); return !!x.pattern; } catch (_) { return false; } });
+      if (!edits.length) { this.setState({ rpNLBusy: false, rpMsg: zh ? '無法解析，請換個說法' : "Couldn't interpret that — try rephrasing" }); return; }
+      let n = 0; const res = edits.map(x => new RegExp(x.pattern, 'g'));
+      data.forEach(c => c.series.forEach(s => s.entries.forEach(e => { [e.o, ...e.nat, e.k, e.ken || ''].forEach(t => res.forEach(re => { n += (String(t).match(re) || []).length; })); })));
+      if (!n) { this.setState({ rpNLBusy: false, rpMsg: zh ? '沒有符合的內容' : 'Nothing matched' }); return; }
+      const title = (j.title || text).trim();
+      this.setState(s => ({ rpNLBusy: false, rpFind: '', rpRepl: '', rpLast: true, rules: [...(s.rules || []), { find: title, repl: '', nlEdits: edits }],
+        rpMsg: zh ? `已取代 ${n} 處「${title}」` : `Replaced ${n} ${n === 1 ? 'match' : 'matches'} — "${title}"` }), () => this.applyRules());
+    } catch (err) { if (err && err.stopped) return; this.setState({ rpNLBusy: false, rpMsg: zh ? '取代失敗，請再試一次' : 'Replace failed — try again' }); }
+  }
+  applyRenum(data, map) {
+    const CAT = { grammar: /^grammar$/i, prep: /^prep(ositions)?( & articles)?$/i, spelling: /^spelling$/i, idiom: /^idiom(atic)?( phrasing)?$/i, git: /^git$/i, yt: /^youtrack$/i, vue: /^vue$/i, request: /^"?could you"?( requests)?$/i };
+    const cm = {};
+    data.forEach(c => { cm[c.id] = {}; c.series.forEach(s => s.entries.forEach(e => { const nn = map ? map[e.id] : null; e.n = nn || e.n0; if (e.n0 != null) cm[c.id][e.n0] = e.n; })); });
+    const catOf = w => { if (!w) return null; const t = w.trim(); return Object.keys(CAT).find(k => CAT[k].test(t)) || null; };
+    const fix = (t, own) => typeof t !== 'string' ? t : t
+      .replace(/((?:Grammar|Prepositions(?: & Articles)?|Spelling|Idiomatic(?: Phrasing)?|Git|YouTrack|Vue|"Could you"(?: Requests)?)\s+)?#(\d+)(?:([–-])(\d+))?/g, (m, cw, a, dash, b) => {
+        const cid = catOf(cw) || own; const mp = cm[cid] || {};
+        return (cw || '') + '#' + (mp[a] || a) + (dash ? dash + (mp[b] || b) : '');
+      })
+      .replace(/第\s*(\d+)(?:([–-])(\d+))?\s*條/g, (m, a, dash, b) => { const mp = cm[own] || {}; return '第 ' + (mp[a] || a) + (dash ? dash + (mp[b] || b) : '') + ' 條'; });
+    data.forEach(c => c.series.forEach(s => s.entries.forEach(e => { e.orig.k = map ? fix(e.orig.k0, c.id) : e.orig.k0; e.orig.ken = map ? fix(e.orig.ken0, c.id) : e.orig.ken0; e.terms = null; })));
+  }
+  renumberAll(reset) {
+    const { data } = this.state; if (!data) return;
+    let map = null;
+    if (!reset) { map = {}; data.forEach(c => { let i = 0; c.series.forEach(s => s.entries.forEach(e => { map[e.id] = ++i; })); }); }
+    try { if (map) localStorage.setItem('pn-renum', JSON.stringify(map)); else localStorage.removeItem('pn-renum'); } catch (_) {}
+    this.applyRenum(data, map);
+    this.setState({ renumbered: !!map }, () => this.applyRules());
+  }
+  countHits(find) {
+    let n = 0; const { data } = this.state; if (!data || !find) return 0;
+    const re = rpRegex(find, this.state.rpWild !== false);
+    data.forEach(c => c.series.forEach(s => s.entries.forEach(e => {
+      [e.o, ...e.nat, e.k, e.ken || '', ...e.ex.flatMap(x => x.items), ...(e.exen || []).flatMap(x => x.items)].forEach(t => { n += (String(t).replace(/\*\*|`/g, '').match(re) || []).length; });
+    }))); return n;
+  }
+  pick(cat, ser) { this.setState({ cat, ser, limit: PAGE, q: '' }); window.scrollTo({ top: 0 }); }
+  renderVals() {
+    MC = this.state.matchCase !== false;
+    const { data, cat, ser, q, limit, revealed, closed } = this.state;
+    const lang = this.state.lang || this.props.defaultLang || 'en';
+    const mode = this.state.mode || this.props.defaultMode || 'read';
+    const L = STR[lang], zh = lang === 'zh';
+    const seg = (opts, cur, key) => opts.map(([v, label]) => ({ label, bg: cur === v ? 'oklch(0.205 0.009 70)' : 'transparent',
+      col: cur === v ? ACC : 'oklch(0.68 0.012 75)', sh: cur === v ? '0 1px 2px oklch(0 0 0 / 0.4)' : 'none',
+      onClick: () => this.setState({ [key]: v, revealed: {} }) }));
+    const view = this.state.view || 'notes';
+    const prevHL = HL, prevRE = HLRE; HL = ''; HLRE = null;
+    const gloss = GLOSS[lang].map(g => ({ term: g.term, def: segs(g.def), tip: segs(g.tip),
+      seeLabel: zh ? '查看相關條目 →' : 'See related entries →',
+      see: () => { this.setState({ view: 'notes', q: g.q, limit: PAGE }); window.scrollTo({ top: 0 }); },
+      rules: g.rules.map(r => ({ title: segs(r.title), ex: r.ex.map(([k, t]) => ({ mark: k === 'ok' ? '✓' : '✗',
+        markCol: k === 'ok' ? 'oklch(0.76 0.1 165)' : 'oklch(0.72 0.13 35)', col: k === 'ok' ? 'oklch(0.95 0.01 80)' : 'oklch(0.7 0.03 40)',
+        deco: k === 'ok' ? 'none' : 'line-through', segs: segs(t) })) })) }));
+    HL = prevHL; HLRE = prevRE;
+    const rules = this.state.rules || [];
+    const rp = { title: zh ? '取代' : 'Replace', find: this.state.rpFind || '', repl: this.state.rpRepl || '',
+      findPh: this.state.rpNL ? (zh ? '描述要取代什麼，例如：把所有工單號碼換成 TICKET-XXX' : 'Describe what to replace, e.g. "turn every ticket number into TICKET-XXX"') : (zh ? '要取代的文字（* 為萬用字元）' : 'Text to replace (* = wildcard)'), replPh: this.state.rpNL ? (zh ? '取代為（可留空）' : 'Replace with (optional)') : (zh ? '取代為' : 'Replace with'), sendLabel: this.state.rpNLBusy ? (zh ? '■ 停止' : '■ Stop') : (zh ? '送出' : 'Send'),
+      status: this.state.rpMsg || (zh ? '套用到所有條目（原句、母語者說法、重點）' : 'Applies to every entry — your sentence, native-speaker lines and key points'),
+      mcOn: this.state.matchCase !== false, mcBg: this.state.matchCase !== false ? 'oklch(0.72 0.12 45)' : 'transparent', mcCol: this.state.matchCase !== false ? 'oklch(0.17 0.01 60)' : 'oklch(0.78 0.012 75)',
+      mcTitle: zh ? '大小寫須一致' : 'Match case', mcBd: this.state.matchCase !== false ? 'oklch(0.72 0.12 45)' : 'oklch(0.36 0.01 70)',
+      toggleMC: () => { const v = !(this.state.matchCase !== false); try { localStorage.setItem('pn-match-case', v ? '1' : '0'); } catch (_) {} MC = v; this.setState({ matchCase: v, rpMsg: '', limit: PAGE }); },
+      matchOpts: [[false, zh ? '完全符合' : 'Exact match'], [true, zh ? '自然語言' : 'Natural language']].map(([v, label]) => { const on = !!this.state.rpNL === v; return { label,
+        bg: on ? 'oklch(0.72 0.12 45)' : 'transparent', col: on ? 'oklch(0.17 0.01 60)' : 'oklch(0.78 0.012 75)',
+        onClick: () => { try { localStorage.setItem('phrasing-replace-nl', v ? '1' : '0'); } catch (_) {} const cur = this.state.rpFind || ''; const lit = cur.split('*').sort((x, y) => y.length - x.length)[0].trim();
+          this.setState({ rpNL: v, rpMsg: '', rpSug: [], q: v ? '' : lit, limit: PAGE }); } }; }),
+      wildOn: this.state.rpWild !== false,
+      wildLabel: zh ? '* 為萬用字元' : '* as wildcard',
+      wildBg: this.state.rpWild !== false ? 'oklch(0.72 0.12 45)' : 'oklch(0.32 0.01 70)',
+      wildX: this.state.rpWild !== false ? '14px' : '0px',
+      toggleWild: () => { const v = !(this.state.rpWild !== false); try { localStorage.setItem('phrasing-replace-wild', v ? '1' : '0'); } catch (_) {} const cur = this.state.rpFind || ''; const lit = (v ? cur.split('*') : [cur]).sort((a, b) => b.length - a.length)[0].trim();
+        this.setState({ rpWild: v, rpMsg: '', ...(cur ? { q: lit, limit: PAGE } : {}) }); },
+      onFind: ev => { const v = ev.target.value; if (this.state.rpNL) { this.setState({ rpFind: v, rpMsg: '' }); return; } const lit = (this.state.rpWild === false ? [v] : v.split('*')).sort((a, b) => b.length - a.length)[0].trim();
+        this.setState({ rpFind: v, rpMsg: '', q: lit, limit: PAGE }); }, onRepl: ev => this.setState({ rpRepl: ev.target.value }),
+      send: ev => { ev.preventDefault(); if (this.state.rpNLBusy) { this.stopOp('rnl', 'rpNLBusy', zh); return; } const f = this.state.rpFind || ''; if (!f) return; if (this.state.rpNL) { this.replaceNL(zh); return; }
+        const n = this.countHits(f);
+        if (!n) { this.setState({ rpMsg: zh ? `找不到「${f}」` : `No matches for "${f}"` }); return; }
+        this.setState({ rules: [...rules, { find: f, repl: this.state.rpRepl || '', wild: this.state.rpWild !== false, mc: MC }], rpFind: '', rpRepl: '', q: '', rpSug: [], rpLast: true,
+          rpMsg: zh ? `已取代 ${n} 處` : `Replaced ${n} ${n === 1 ? 'match' : 'matches'}` }, () => this.applyRules()); },
+      suggestLabel: this.state.rpBusy ? (zh ? '■ 停止' : '■ Stop') : (zh ? '建議替換' : 'Suggest'),
+      busyOp: '1',
+      suggest: () => this.state.rpBusy ? this.stopOp('sug', 'rpBusy', zh) : this.suggest(zh),
+      hasSug: (this.state.rpSug || []).length > 0,
+      rpRefine: this.state.rpRefine || '', onRpRefine: ev => this.setState({ rpRefine: ev.target.value }),
+      refinePh: zh ? '不滿意？描述需求重新產生，例如：要更口語、保留原本動詞' : 'Not quite? Describe what you want and regenerate, e.g. "more casual, keep the verb"',
+      regenLabel: zh ? '重新產生' : 'Regenerate',
+      regenRp: () => { if (this.state.rpBusy) { this.stopOp('sug', 'rpBusy', zh); return; } this.setState({ rpSugPrev: this.state.rpSug || [] }, () => this.suggest(zh)); },
+      rpRefKey: ev => { if (ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); this.setState({ rpSugPrev: this.state.rpSug || [] }, () => this.suggest(zh)); } },
+      regenRpLabel: this.state.rpBusy ? (zh ? '■ 停止' : '■ Stop') : (zh ? '重新產生' : 'Regenerate'),
+      sug: (this.state.rpSug || []).map(s => ({ text: s.text, note: s.note,
+        use: () => this.setState({ rpRepl: s.text, rpSug: [], rpMsg: zh ? '已填入，按「送出」套用' : 'Filled in — click Send to apply' }) })),
+      mk: this.state.mkFind || '', mkPh: zh ? '用自然語言描述要標記的內容，例如：母語者修正但沒有粗體的地方畫底線' : 'Describe what to mark, e.g. "underline corrections in the native lines that aren\'t bold yet"', mkLabel: this.state.mkBusy ? (zh ? '■ 停止' : '■ Stop') : (zh ? '標記' : 'Mark'),
+      onMk: ev => this.setState({ mkFind: ev.target.value, rpMsg: '' }),
+      mkSugLabel: this.state.mkSugBusy ? (zh ? '■ 停止' : '■ Stop') : (zh ? '建議' : 'Suggest'),
+      mkSugOp: '1',
+      suggestMk: () => this.state.mkSugBusy ? this.stopOp('mksug', 'mkSugBusy', zh) : this.suggestMark(zh),
+      hasMkSug: (this.state.mkSug || []).length > 0,
+      mkRefine: this.state.mkRefine || '', onMkRefine: ev => this.setState({ mkRefine: ev.target.value }),
+      regenMk: () => { if (this.state.mkSugBusy) { this.stopOp('mksug', 'mkSugBusy', zh); return; } this.setState({ mkSugPrev: this.state.mkSug || [] }, () => this.suggestMark(zh)); },
+      mkRefKey: ev => { if (ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); this.setState({ mkSugPrev: this.state.mkSug || [] }, () => this.suggestMark(zh)); } },
+      regenMkLabel: this.state.mkSugBusy ? (zh ? '■ 停止' : '■ Stop') : (zh ? '重新產生' : 'Regenerate'),
+      mkSug: (this.state.mkSug || []).map(s => ({ text: s.text, note: s.note,
+        use: () => this.setState({ mkFind: s.text, mkSug: [], rpMsg: zh ? '已填入，按「標記」套用' : 'Filled in — click Mark to apply' }) })),
+      sendMk: ev => { ev.preventDefault(); if (this.state.mkBusy) { this.stopOp('mk', 'mkBusy', zh); return; }
+        const sel = (this._sel || '').trim(); if (sel && !(this.state.mkFind || '').trim()) { this.remark(sel, zh); return; } this.markNL(zh); },
+      mkHint: this.state.selText ? (zh ? `已選取「${this.state.selText}」— 按「標記」重新標記並套用到相似條目` : `Selected "${this.state.selText}" — click Mark to re-mark it and every similar phrase`) : '',
+      hasMkHint: !!this.state.selText,
+      gp: this.state.gpFind || '', gpPh: zh ? '用自然語言描述要歸為一組的條目，例如：所有 merge / fold into 的用法' : 'Describe what to group, e.g. "everything about merge / fold into"', gpLabel: this.state.gpBusy ? (zh ? '■ 停止' : '■ Stop') : (zh ? '歸組' : 'Group'),
+      onGp: ev => this.setState({ gpFind: ev.target.value, rpMsg: '' }),
+      gpKey: ev => { if (ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); rp.sendGp(ev); } },
+      sendGp: ev => { ev.preventDefault(); if (this.state.gpBusy) { this.stopOp('gp', 'gpBusy', zh); return; } this.groupNL(zh); },
+      mkKey: ev => { if (ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); rp.sendMk(ev); } },
+      canUndo: !!this.state.rpLast && rules.length > 0,
+      lastLabel: rules.length ? (rules[rules.length - 1].moveLine ? (zh ? '移動一行' : 'Moved a line') : rules[rules.length - 1].autoMark ? (zh ? `重新標記「${rules[rules.length - 1].series}」` : `Re-marked "${rules[rules.length - 1].series}"`) : rules[rules.length - 1].remark ? (zh ? `重新標記「${rules[rules.length - 1].remark}」` : `Re-marked "${rules[rules.length - 1].remark}"`) : rules[rules.length - 1].group ? (zh ? `歸組「${rules[rules.length - 1].title || rules[rules.length - 1].find}」` : `Grouped "${rules[rules.length - 1].title || rules[rules.length - 1].find}"`) : rules[rules.length - 1].mark ? (zh ? `標記「${rules[rules.length - 1].title || rules[rules.length - 1].find}」` : `Marked "${rules[rules.length - 1].title || rules[rules.length - 1].find}"`) : zh ? `「${rules[rules.length - 1].find}」→「${rules[rules.length - 1].repl}」` : `"${rules[rules.length - 1].find}" → "${rules[rules.length - 1].repl}"`) : '',
+      undoLabel: zh ? '復原' : 'Undo',
+      undoLast: () => this.setState({ rules: rules.slice(0, -1), rpLast: false, rpMsg: zh ? '已復原' : 'Undone' }, () => this.applyRules()) };
+    const lg = (sample, label, o = {}) => ({ sample, label, w: o.w || '600', col: o.col || 'inherit', bg: o.bg || 'transparent', pad: o.pad || '0', deco: o.deco || 'none' });
+    const legend = { title: zh ? '顏色說明' : 'Colour key', items: [
+      lg('Abc', zh ? '系列主題（第一組），否則第一個重點' : 'Series topic (1st part), else 1st key phrase', { col: GROUP_COLS[0] }),
+      lg('Abc', zh ? '系列主題第二組，否則第二個重點' : 'Series topic (2nd part), else 2nd key phrase', { col: GROUP_COLS[1] }),
+      lg('Abc', zh ? '第三個重點' : '3rd key phrase', { col: GROUP_COLS[2] }),
+      lg('Abc', zh ? '第四個重點' : '4th key phrase', { col: GROUP_COLS[3] }),
+      lg('Abc', zh ? '搜尋符合' : 'Search match', { col: 'oklch(0.18 0.02 70)', bg: 'oklch(0.78 0.14 85)', pad: '1px 4px' }),
+      lg('abc', zh ? '你的原句' : 'Your original', { w: '400', col: 'oklch(0.7 0.03 40)', deco: 'line-through' }),
+    ] };
+    const MT = {
+      word: ['Word choice', '用字選擇', 'A real word, but not the one a native speaker would pick here.', '字本身沒錯，但母語者在這裡不會這樣用。'],
+      article: ['Missing article or noun', '缺冠詞或名詞', 'a / an / the dropped, or an adjective used where a noun is needed (native → the native-speaker line).', '少了 a / an / the，或把形容詞當名詞用（native → the native-speaker line）。'],
+      fragment: ['Fragment, no full sentence', '片段，不成完整句', 'Notes, code notation or Chinese word order with no subject or verb.', '筆記式、程式符號或中文語序，缺主詞或動詞。'],
+      prep: ['Wrong preposition', '介係詞錯誤', 'replace to, merge to, at the left…', 'replace to、merge to、at the left…'],
+      pos: ['Wrong part of speech', '詞性錯誤', 'share → shared, stylish → styling.', 'share → shared、stylish → styling。'],
+      passive: ['Active vs passive', '主動 / 被動', 'The thing being acted on needs be + past participle (this ticket is merged).', '被處理的東西要用 be + 過去分詞（this ticket is merged）。'],
+      gerund: ['Verb form after a word', '動詞形式', 'how about + -ing, to + base verb, let/make + base verb.', 'how about + -ing、to + 原形、let/make + 原形。'],
+      object: ['Missing object', '缺受詞', 'Transitive verbs need an object: renumber the entries.', '及物動詞要接受詞：renumber the entries。'],
+      spell: ['Spelling', '拼字', 'Typos and misspellings.', '拼錯或打錯字。'],
+      question: ['Question structure', '疑問句結構', 'Missing subject or helper verb: how to … → How do I …?', '缺主詞或助動詞：how to … → How do I …?'],
+      splice: ['Comma splice', '逗號連接句', 'Two sentences joined with only a comma; add and or a period.', '兩句只用逗號相連，要加 and 或句點。'],
+      agree: ['Subject–verb agreement', '主詞動詞一致', 'Singular subjects need -s or a modal (the box should replace).', '單數主詞要加 -s 或用情態動詞（the box should replace）。'],
+      tense: ['Tense / would', '時態 / would', 'would vs will, present perfect with already.', 'would 與 will、already 配現在完成式。'],
+      redundant: ['Redundant words', '多餘的字', 'Words that add nothing (in here → here).', '不必要的字（in here → here）。'],
+      subject: ['Wrong subject', '主詞錯誤', 'Things don\'t act on themselves: should we rename …', '物品不會自己動作：should we rename …'],
+      tone: ['Tone', '語氣', 'Too blunt or too vague for the situation.', '語氣太直接或太模糊。'],
+    };
+    const mkAll = (data || []).flatMap(c => c.series.flatMap(s => s.entries.map(e => [c.id, e])));
+    const mkCnt = {};
+    mkAll.forEach(([cid, e]) => { const k = e.mt || 'word'; const o = mkCnt[k] || (mkCnt[k] = { n: 0, s: 0, ex: [] }); if (cid === 'session') o.s++; else { o.n++; o.ex.push(e); } });
+    const mkMax = Math.max(1, ...Object.values(mkCnt).map(o => o.n));
+    const mk = { crumb: zh ? '分析' : 'Analysis', title: zh ? '依錯誤類型' : 'By mistake type',
+      sub: zh ? `${mkAll.length} 條，每條只算主要錯誤，依出現次數排序。「本次對話」另計。` : `${mkAll.length} entries, each counted under its main mistake only, most frequent first. This Conversation is counted separately.`,
+      colType: zh ? '類型' : 'Type', colNotes: zh ? '筆記' : 'Notes', colSession: zh ? '本次' : 'Session',
+      rows: Object.entries(mkCnt).sort((a, b) => b[1].n - a[1].n || b[1].s - a[1].s).map(([k, o]) => {
+        const m = MT[k] || [k, k, '', ''];
+        const ex = o.ex.filter(e => e.o && e.nat[0] && e.o.length < 90).sort((a, b) => a.o.length - b.o.length);
+        const pick = [ex[0], ex[Math.floor(ex.length / 2)], ex[ex.length - 1]].filter((e, i, a) => e && a.indexOf(e) === i);
+        return { label: zh ? m[1] : m[0], desc: zh ? m[3] : m[2], n: o.n, s: o.s || '–', pct: Math.round(o.n / mkMax * 100) + '%',
+          ex: pick.map(e => ({ o: String(e.o).replace(/\*\*|`/g, ''), segs: segs(e.nat[0]) })) };
+      }) };
+    const sb = this.state.selBar;
+    const selBar = { show: !!sb, canMove: !!(sb && sb.canMove), canMark: !!(sb && sb.canMark), markLabel: zh ? '✎ 標記' : '✎ Mark', markTitle: zh ? '重新標記選取文字並套用到相似條目' : 'Re-mark the selection and every similar phrase',
+      mark: ev => { ev.preventDefault(); const sel = (this._sel || '').trim(); this.setState({ selBar: null }); if (sel) this.remark(sel, zh); },
+      x: sb ? sb.x + 'px' : '0px', y: sb ? sb.y + 'px' : '0px', tf: (sb && sb.tf) || 'none', upLabel: zh ? '↑ 上移一行' : '↑ Move up', topLabel: zh ? '⤒ 置頂' : '⤒ Move to top',
+      up: ev => { ev.preventDefault(); this.moveLine('up', zh); }, top: ev => { ev.preventDefault(); this.moveLine('top', zh); } };
+    const base = { selBar, mcx: { toggleMC: rp.toggleMC, mcTitle: rp.mcTitle, mcOn: rp.mcOn, mcBd: rp.mcBd, mcBg: rp.mcBg, mcCol: rp.mcCol }, L, q, hasQ: !!q, isPractice: mode === 'practice', gloss, rp, legend, mk, isGlossary: view === 'glossary', isMistakes: view === 'mistakes', isNotes: view !== 'glossary' && view !== 'mistakes',
+      viewOpts: [['notes', zh ? '筆記' : 'Notes'], ['mistakes', zh ? '錯誤類型' : 'Mistakes'], ['glossary', zh ? '文法術語' : 'Grammar terms']].map(([v, label]) => ({ label,
+        bg: view === v ? 'oklch(0.205 0.009 70)' : 'transparent', col: view === v ? ACC : 'oklch(0.68 0.012 75)',
+        sh: view === v ? '0 1px 2px oklch(0 0 0 / 0.4)' : 'none', onClick: () => { this.setState({ view: v }); window.scrollTo({ top: 0 }); } })),
+      modeOpts: seg([['read', L.read], ['practice', L.practice]], mode, 'mode'),
+      langOpts: seg([['en', 'EN'], ['zh', '中文']], lang, 'lang'),
+      onSearch: ev => this.setState({ q: ev.target.value, limit: PAGE }),
+      clearSearch: () => this.setState({ q: '' }),
+      navOpen: !this.state.navHidden, navClosed: !!this.state.navHidden,
+      toggleNav: () => this.setState(st => { const v = !st.navHidden; try { localStorage.setItem('pn-nav-hidden', v ? '1' : ''); } catch (_) {} return { navHidden: v }; }),
+      natOnlyLabel: zh ? '只搜母語者' : 'Native only',
+      natOnlyBg: this.state.natOnly ? 'oklch(0.76 0.1 165)' : 'transparent',
+      natOnlyCol: this.state.natOnly ? 'oklch(0.18 0.02 165)' : 'oklch(0.68 0.012 75)',
+      natOnlyBd: this.state.natOnly ? 'oklch(0.76 0.1 165)' : 'oklch(0.34 0.01 70)',
+      sortOpts: [['cat', zh ? '依分類' : 'Category'], ['mistake', zh ? '依錯誤' : 'Mistake']].map(([v, label]) => { const on = (this.state.navSort || 'cat') === v; return { label,
+        bg: on ? 'oklch(0.27 0.014 70)' : 'transparent', col: on ? ACC : 'oklch(0.68 0.012 75)',
+        onClick: () => { try { localStorage.setItem('pn-nav-sort', v); } catch (_) {} this.setState({ navSort: v, cat: 'all', ser: null }); } }; }),
+      starNote: { show: this.state.navSort === 'mistake', text: zh ? '★ 優先學習：最常出現、且修正後仍一再重犯的錯誤。依優先順序排列，其餘依數量。' : '★ Focus first: frequent mistakes that keep coming back after being corrected. Sorted by priority, then by count.' },
+      renumLabel: zh ? '重新編號' : 'Renumber', renumHint: zh ? '依目前順序將每個分類從 1 重新編號，並更新重點裡的 # 參照' : 'Number each category from 1 in its current order, and update # references in key points',
+      renumber: () => this.renumberAll(false),
+      showReset: !!this.state.renumbered, resetLabel: zh ? '還原編號' : 'Restore numbers', resetRenum: () => this.renumberAll(true),
+      toggleNatOnly: () => this.setState(st => ({ natOnly: !st.natOnly, limit: PAGE })),
+      revealAll: () => { const r = {}; this.cur.forEach(e => r[e.id] = 1); this.setState({ revealed: r }); },
+      hideAll: () => this.setState({ revealed: {} }),
+      showMore: () => this.setState({ limit: limit + PAGE }) };
+    if (!data) return { ...base, loading: true, nav: [], items: [], patterns: [], totalLabel: '', crumb: '', heading: L.title, subheading: '' };
+    const all = data.flatMap(c => c.series.flatMap(s => s.entries));
+    const serName = s => s.title === 'General' ? L.general : (zh && s.titleZh ? s.titleZh : s.title);
+    const byMistake = this.state.navSort === 'mistake';
+    const groups = !byMistake ? data : (() => {
+      const g = {};
+      data.forEach(c => c.series.forEach(s => s.entries.forEach(e => { const k = e.mt || 'word'; const G = g[k] || (g[k] = { id: 'mt:' + k, en: (MT[k] || [k])[0], zh: (MT[k] || [k, k])[1], sub: (MT[k] || [])[2] || '', subZh: (MT[k] || [])[3] || '', by: {} });
+        (G.by[c.id] = G.by[c.id] || { title: c.en, titleZh: c.zh, desc: '', notes: [], entries: [] }).entries.push(e); })));
+      return Object.values(g).map(G => ({ ...G, series: Object.values(G.by).sort((a, b) => b.entries.length - a.entries.length) }))
+        .sort((a, b) => { const P = ['passive', 'article', 'fragment', 'splice', 'prep', 'gerund', 'question'];
+          const pa = P.indexOf(a.id.slice(3)), pb = P.indexOf(b.id.slice(3));
+          if (pa !== pb) return (pa < 0 ? 99 : pa) - (pb < 0 ? 99 : pb);
+          return b.series.reduce((n, s) => n + s.entries.length, 0) - a.series.reduce((n, s) => n + s.entries.length, 0); })
+        .map((G, i) => i < 4 ? { ...G, en: '★ ' + G.en, zh: '★ ' + G.zh } : G);
+    })();
+    const nav = [{ id: 'all', label: L.all, count: all.length, series: [] }, ...groups.map(c => ({ id: c.id, label: zh ? c.zh : c.en,
+      count: c.series.reduce((n, s) => n + s.entries.length, 0), series: c.series }))].map(c => {
+      const active = !q && cat === c.id;
+      return { label: c.label, count: c.count, open: active && c.series.length > 1,
+        bg: active && ser == null ? 'oklch(0.27 0.014 70)' : 'transparent', col: active ? ACC : 'oklch(0.76 0.012 75)',
+        fw: active ? '600' : '400', numCol: active ? 'oklch(0.8 0.012 75)' : 'oklch(0.6 0.012 75)',
+        onClick: () => this.pick(c.id, null),
+        series: c.series.map((s, i) => ({ label: serName(s), count: s.entries.length,
+          bg: active && ser === i ? 'oklch(0.27 0.014 70)' : 'transparent', col: active && ser === i ? ACC : 'oklch(0.7 0.012 75)',
+          onClick: () => this.pick(c.id, i) })) };
+    });
+    let list, crumb, heading, subheading, patterns = [];
+    const ql = q.trim().toLowerCase();
+    if (ql) {
+      const rf = this.state.rpNL ? '' : (this.state.rpFind || '');
+      const no = !!this.state.natOnly, R = e => (no ? e.natRaw : e.raw) || '', H = e => (no ? e.natHay : e.hay) || '';
+      if (rf) { const re0 = rpRegex(rf, this.state.rpWild !== false); const re = new RegExp(re0.source, re0.flags.replace('g', '')); list = all.filter(e => re.test(R(e))); }
+      else if (ql.includes('*') && this.state.rpWild !== false) { const re = new RegExp(rpRegex(q.trim(), true).source, MC ? '' : 'i'); list = all.filter(e => re.test(R(e))); }
+      else list = MC ? all.filter(e => R(e).includes(q.trim())) : all.filter(e => H(e).includes(ql));
+      crumb = L.results; heading = '“' + (rf || q).trim() + '”'; subheading = list.length + ' ' + L.entries;
+    } else if (cat === 'all') {
+      list = all; crumb = L.categories; heading = L.all; subheading = L.allSub;
+    } else {
+      const c = groups.find(x => x.id === cat) || { series: data.flatMap(x => x.series), en: L.all, zh: L.all, sub: '', subZh: '' };
+      if (ser == null || !c.series[ser]) { list = c.series.flatMap(s => s.entries); crumb = L.categories; heading = zh ? c.zh : c.en; subheading = zh ? c.subZh : c.sub; }
+      else { const s = c.series[ser]; list = s.entries; crumb = zh ? c.zh : c.en; heading = serName(s); subheading = s.desc; patterns = s.notes.filter(n => n.length < 90 && /[A-Za-z]/.test(n)); }
+    }
+    this.cur = list;
+    HL = ql; HLRE = (this.state.rpFind && !this.state.rpNL) ? rpRegex(this.state.rpFind, this.state.rpWild !== false) : (ql.includes('*') && this.state.rpWild !== false ? new RegExp(rpRegex(q.trim(), true).source, MC ? 'g' : 'gi') : (MC && ql ? rpRegex(q.trim(), false) : null));
+    const practice = mode === 'practice';
+    const natOnlyHL = !!this.state.natOnly && !!ql;
+    const plain = fn => { if (!natOnlyHL) return fn(); const a = HL, b = HLRE; HL = ''; HLRE = null; try { return fn(); } finally { HL = a; HLRE = b; } };
+    const items = list.slice(0, limit).map(e => {
+      const shown = !practice || !!revealed[e.id];
+      const keyOpen = !closed[e.id];
+      return { id: e.id, n: e.n, where: (zh ? e.cat.zh : e.cat.en) + (e.ser.title === 'General' ? '' : ' · ' + (zh && e.ser.titleZh ? e.ser.titleZh : e.ser.title)),
+        oSeg: plain(() => segs(e.o)), nat: e.nat.map((v, ni) => ({ ni, segs: natSegs(v, e.terms || (e.terms = keyTerms((e.ken || '') + ' ' + e.k)), e.ser && (e.ser.keys || e.ser.title)) })), shown, hidden: !shown,
+        kLines: plain(() => { const ls = splitKey(!zh && e.ken ? e.ken : e.k); return ls.map((l, ki) => ({ ki, segs: segs(l), dot: ls.length > 1 ? '1' : '0' })); }), ex: plain(() => (!zh && e.exen ? e.exen : e.ex).map(x => ({ label: x.label || (zh ? '其他說法' : 'Alternatives'), items: x.items.map(it => ({ segs: segs(it) })) }))),
+        keyOpen, caret: keyOpen ? '▾' : '▸',
+        reveal: () => this.setState(st => ({ revealed: { ...st.revealed, [e.id]: 1 } })),
+        toggleKey: () => this.setState(st => ({ closed: { ...st.closed, [e.id]: !st.closed[e.id] } })) };
+    });
+    return { ...base, loading: false, empty: list.length === 0, nav, items, crumb, heading, subheading,
+      patterns, hasPatterns: patterns.length > 0, hasMore: list.length > limit,
+      moreLabel: L.more + ' (' + (list.length - limit) + ')',
+      totalLabel: all.length + ' ' + L.entries };
+  }
+}
+</script>
+</body>
+</html>
