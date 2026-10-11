@@ -9,8 +9,7 @@ Live site: https://r0963033043.github.io/multilingual/
 | Page | File | Description |
 | --- | --- | --- |
 | Home | `projects.html` | Landing page with a card for each notebook |
-| Vocabulary | `Voc.html` | IELTS word list with meanings, example sentences, and quizzes |
-| Writing Notes | `Writing Notes.html` | IELTS writing notes and patterns, with a table of contents |
+| IELTS | `Voc.html` | Four tabs: Vocabulary (word list with meanings, example sentences, and quizzes), Writing, Reading, and Grammar notes |
 | Phrasing Notes | `Phrasing notes/Phrasing Notes.dc.html` | Natural phrasing and expressions, EN / 中文 |
 
 `index.html` redirects to `projects.html`. Every notebook has a `←` button in its header that returns to the home page.
@@ -20,7 +19,7 @@ Live site: https://r0963033043.github.io/multilingual/
 - `index.html` — redirects to the home page
 - `projects.html` — home page; cards are generated from the `projects` array in its script
 - `styles.css` / `theme.js` — shared dark theme and theme toggle for the home page
-- `Voc.html`, `Writing Notes.html` — self-contained single-file notebooks
+- `Voc.html` — self-contained IELTS notebook; the Writing, Reading, and Grammar tabs are separate HTML pages stored base64-encoded in `<script type="text/plain" id="pg-*">` blocks and shown in an iframe
 - `Phrasing notes/` — Phrasing Notes page plus its data
   - `phrasing-data.json`, `phrasing-en.json` — phrasing entries (the only source of truth)
   - `support.js` — runtime for the page
